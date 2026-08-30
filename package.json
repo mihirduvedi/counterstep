@@ -16,6 +16,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:firestore": "npx --yes firebase-tools@15.28.2 emulators:exec --only firestore --project demo-counterstep \"npm run test:firestore:run\"",
+    "test:firestore:run": "METADATA_SERVER_DETECTION=none vitest run --config vitest.firestore.config.ts",
     "eval": "vitest run tests/evaluation/counterstepEvaluation.test.ts",
     "eval:live": "node scripts/live-eval.mjs",
     "smoke:cloud": "node scripts/cloud-smoke.mjs",

@@ -37,9 +37,23 @@ The following functionality is new for this submission:
 - deterministic plan, authority, version, transition, citation, budget, and idempotency gates;
 - bounded stale-version recovery with fresh re-inspection, one replacement plan, and immutable approved-plan history;
 - Firestore-backed sandbox/run/event/receipt persistence;
+- credential-free Firestore emulator integration coverage for reset, concurrency,
+  idempotency, stale recovery, repeated-stale blocking, and irreversible state;
 - remediation action events and action-receipt evaluation;
 - deterministic closure evaluator and closure receipt;
 - Counterstep API routes and focused judge interface;
 - Cloud Run deployment configuration, evaluation cases, architecture, and release evidence.
 
 Creating a new repository does not reset the age of reused code. Submission materials must link this file and describe Counterstep as a new remediation layer built on a disclosed Agent Receipt foundation.
+
+## Verification evidence boundary
+
+| Evidence layer | Current status | What it does and does not establish |
+|---|---|---|
+| Automated local | Passed | Lint, strict TypeScript, deterministic tests, Next.js production build, and release audit pass locally. |
+| Firestore emulator | Passed locally | Six tests execute the production Firestore repository against the official local emulator, including concurrent idempotency and stale transactions. This does not establish managed Firestore behavior. |
+| Google ADK / Gemini live | Not run | Agent and tool contracts compile, but no valid Gemini execution is claimed without a server-only credential. |
+| Managed Firestore | Not run | No Google Cloud project mutation or managed-database transaction is claimed. |
+| Cloud Run / deployed | Not run | Deployment configuration exists, but there is no deployment or public smoke claim. |
+| Visual | Passed for the deterministic canonical path | Browser reset/run/download and responsive overflow checks passed; stale replacement-plan rendering remains untested. |
+| Accessibility | Partially checked | Static semantics and labels are present; keyboard-only, 200% zoom, reduced-motion, forced-colors, and screen-reader checks remain manual and unclaimed. |

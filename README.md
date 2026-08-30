@@ -66,6 +66,7 @@ Requirements:
 
 - Node.js 24.13 or newer
 - npm
+- Java 21 or newer only for the local Firestore emulator suite
 
 ```bash
 npm ci
@@ -99,6 +100,16 @@ FIRESTORE_DATABASE_ID=(default)
 
 Firestore stores demos and sandbox resources under `counterstep_demos`, and remediation runs under `counterstep_runs`. Each run contains its authority, active plan decision, immutable approved plans, inspections, event ledger, idempotency records, and closure receipt. Browser clients have no direct Firestore access; `firestore.rules` denies all client reads and writes.
 
+The production Firestore adapter has a credential-free local integration suite:
+
+```bash
+npm run test:firestore
+```
+
+This starts the official Firestore emulator for the isolated `demo-counterstep` project, runs the production repository against it, and shuts the emulator down. The `demo-` project boundary prevents accidental access to live resources. The first invocation downloads the pinned emulator binary to Firebase's user cache. It does not require a Firebase login, Google Cloud project, service-account key, or billing account.
+
+The suite covers complete canonical persistence and closure, isolated reset/repeat, concurrent idempotent execution, one-time stale re-inspection/replan with immutable plan history, deterministic second-stale blocking, and delivered-message partial repair. Emulator evidence validates the Firestore transaction contract locally; it is not managed-Firestore or Cloud Run evidence.
+
 ## API
 
 | Method | Route | Purpose |
@@ -118,10 +129,13 @@ Mutation endpoints accept strict `application/json` bodies with a 24 KB limit. U
 ```bash
 npm run verify
 npm run eval
+npm run test:firestore
 npm run security:audit
 ```
 
 `npm run verify` runs lint, strict TypeScript, the complete inherited and Counterstep test suites, the standalone production build, and the release/privacy audit.
+
+`npm run test:firestore` is separate so the default local suite does not require Java or an emulator download. CI runs both commands.
 
 The deterministic evaluation set currently covers:
 
@@ -190,13 +204,14 @@ Confirmed locally on August 29, 2026:
 - both closure goals are satisfied and all 12 events are accounted;
 - a deterministic stale-version evaluation re-inspects both resources, admits one replacement plan, preserves both approved plans, and closes `repaired` without a stale overwrite;
 - a repeated-stale evaluation blocks after the permitted replan with zero state-changing remediation events;
+- six production-adapter tests pass against the local Firestore emulator, including concurrent idempotency, reset/repeat, both stale outcomes, and delivered-message handling;
 - the closure download fires, reset/repeat succeeds, and the browser console is clean;
 - the 360px, 768px, and 1440px layouts have no horizontal overflow.
 
 Not yet claimed:
 
 - a live Gemini evaluation;
-- a Firestore emulator or managed Firestore transaction run;
+- a managed Firestore transaction run;
 - a deployed Cloud Run URL;
 - Cloud Run smoke results.
 

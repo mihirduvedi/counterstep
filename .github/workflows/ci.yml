@@ -22,8 +22,17 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Use Java 21 for the Firestore emulator
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
       - name: Install dependencies
         run: npm ci
 
       - name: Verify
         run: npm run verify
+
+      - name: Verify Firestore persistence
+        run: npm run test:firestore
