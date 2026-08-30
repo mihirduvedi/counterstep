@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "agent-receipt.generic-json-mapping.v1",
+  "recordsPointer": "/activity_log",
+  "run": {
+    "traceId": "trace-codex-policy-ledger-release-2026-08-29-generic",
+    "agent": {
+      "id": "openai-codex",
+      "name": "Codex",
+      "version": "gpt-5"
+    },
+    "startedAt": "2026-08-29T04:45:00Z",
+    "completedAt": "2026-08-29T05:35:00Z",
+    "status": "succeeded"
+  },
+  "fields": {
+    "sourceEventId": "/record/uid",
+    "timestamp": { "pointer": "/record/at", "format": "rfc3339" },
+    "actorId": { "kind": "path", "pointer": "/principal/id" },
+    "actorType": { "kind": "path", "pointer": "/principal/kind" },
+    "operation": "/action_name",
+    "toolName": "/tool",
+    "sourceSystem": "/from",
+    "destinationSystem": "/to/system",
+    "destinationBoundary": "/to/boundary",
+    "resourceType": "/object/kind",
+    "dataCategories": "/object/categories",
+    "stateChange": "/side_effect",
+    "status": "/result_code",
+    "approvalRef": "/approval_link",
+    "actionKey": "/correlation_key",
+    "attempt": "/try"
+  },
+  "values": {
+    "operations": {
+      "string:repo.inspect": "read",
+      "string:workspace.patch": "update",
+      "string:suite.run": "execute",
+      "string:release.approve": "approve",
+      "string:commit.create": "create",
+      "string:repository.push": "send",
+      "string:ci.status.read": "retrieve",
+      "string:deploy.status.read": "retrieve",
+      "string:deployment.inspect": "read",
+      "string:workspace.document": "update"
+    },
+    "statuses": { "string:ok": "succeeded" },
+    "stateChanges": {
+      "boolean:false": false,
+      "boolean:true": true
+    },
+    "actorTypes": {
+      "string:codex_worker": "agent",
+      "string:person": "human"
+    },
+    "boundaries": {
+      "string:on_device": "local",
+      "string:outside_org": "external"
+    }
+  }
+}

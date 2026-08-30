@@ -1,0 +1,50 @@
+{
+  "name": "counterstep",
+  "version": "0.1.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "description": "Evidence-bound remediation for completed AI-agent runs.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "eval": "vitest run tests/evaluation/counterstepEvaluation.test.ts",
+    "eval:live": "node scripts/live-eval.mjs",
+    "smoke:cloud": "node scripts/cloud-smoke.mjs",
+    "security:audit": "npm audit --omit=dev --audit-level=high",
+    "release:audit": "node scripts/release-audit.mjs",
+    "verify": "npm run lint && npm run typecheck && npm run test:run && npm run build && npm run release:audit"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "9.0.0",
+    "@google/adk": "2.0.0",
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "26.3.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.3",
+    "typescript": "6.0.3",
+    "vitest": "4.1.11"
+  },
+  "overrides": {
+    "@opentelemetry/core": "2.10.0",
+    "adm-zip": "0.6.0",
+    "gaxios@6.7.1": {
+      "uuid": "11.1.1"
+    }
+  }
+}

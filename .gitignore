@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Tests
+coverage/
+*.tsbuildinfo
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+
+# Personal, not for the public repo
+docs/AI_ASSISTANCE_LOG.md
+
+# Local planning, continuation, and inherited build artifacts
+.bob/
+.bobignore
+COUNTERSTEP_*_HANDOFF*.md
+counterstep-planning/
+output/
+work/

@@ -1,0 +1,11 @@
+.git
+.next
+node_modules
+coverage
+output
+tmp
+counterstep-planning
+docs/screenshots
+*.log
+.env*
+!.env.example

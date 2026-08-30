@@ -1,0 +1,29 @@
+substitutions:
+  _REGION: us-central1
+  _SERVICE: counterstep
+  _REPOSITORY: counterstep
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ["build", "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID", "."]
+  - name: gcr.io/cloud-builders/docker
+    args: ["push", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID"]
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --set-env-vars=COUNTERSTEP_AGENT_MODE=gemini,COUNTERSTEP_REPOSITORY=firestore,COUNTERSTEP_GEMINI_MODEL=gemini-3.5-flash-lite
+      - --set-secrets=GEMINI_API_KEY=counterstep-gemini-api-key:latest
+      - --memory=1Gi
+      - --cpu=1
+      - --timeout=120
+      - --max-instances=10
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_SERVICE}:$BUILD_ID

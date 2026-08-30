@@ -1,0 +1,132 @@
+{
+  "exporter": "example-agent-runner",
+  "export_version": "2026.08",
+  "run_context": {
+    "run_key": "codex-policy-ledger-release-2026-08-29",
+    "worker": "openai-codex",
+    "opened_at": "2026-08-29T04:45:00Z",
+    "closed_at": "2026-08-29T05:35:00Z",
+    "result": "ok"
+  },
+  "activity_log": [
+    {
+      "record": { "uid": "ev-repository-inspection", "at": "2026-08-29T04:45:00Z" },
+      "principal": { "id": "openai-codex", "kind": "codex_worker" },
+      "action_name": "repo.inspect",
+      "result_code": "ok",
+      "side_effect": false,
+      "tool": "filesystem",
+      "from": "local-workspace",
+      "to": { "boundary": "on_device" },
+      "object": { "kind": "repository-source", "categories": ["source_code", "project_documentation"] }
+    },
+    {
+      "record": { "uid": "ev-policy-ledger-implementation", "at": "2026-08-29T04:55:00Z" },
+      "principal": { "id": "openai-codex", "kind": "codex_worker" },
+      "action_name": "workspace.patch",
+      "result_code": "ok",
+      "side_effect": true,
+      "tool": "apply_patch",
+      "from": "local-workspace",
+      "to": { "system": "local-workspace", "boundary": "on_device" },
+      "object": { "kind": "repository-source", "categories": ["source_code", "project_documentation"] },
+      "correlation_key": "policy-ledger-implementation",
+      "try": 1
+    },
+    {
+      "record": { "uid": "ev-local-verification", "at": "2026-08-29T05:20:00Z" },
+      "principal": { "id": "openai-codex", "kind": "codex_worker" },
+      "action_name": "suite.run",
+      "result_code": "ok",
+      "side_effect": false,
+      "tool": "npm",
+      "from": "local-workspace",
+      "to": { "system": "local-shell", "boundary": "on_device" },
+      "object": { "kind": "verification-suite", "categories": ["source_code", "test_results"] }
+    },
+    {
+      "record": { "uid": "ev-release-approval", "at": "2026-08-29T05:31:15Z" },
+      "principal": { "id": "project-owner", "kind": "person" },
+      "action_name": "release.approve",
+      "result_code": "ok",
+      "side_effect": false,
+      "tool": "codex-chat",
+      "to": { "boundary": "on_device" },
+      "object": { "kind": "release-authorization", "categories": [] },
+      "approval_link": "ev-git-push"
+    },
+    {
+      "record": { "uid": "ev-git-commit", "at": "2026-08-29T05:31:30Z" },
+      "principal": { "id": "openai-codex", "kind": "codex_worker" },
+      "action_name": "commit.create",
+      "result_code": "ok",
+      "side_effect": true,
+      "tool": "git",
+      "from": "local-workspace",
+      "to": { "system": "git-local", "boundary": "on_device" },
+      "object": { "kind": "git-commit", "categories": ["source_code", "project_documentation"] },
+      "correlation_key": "policy-ledger-release-commit",
+      "try": 1
+    },
+    {
+      "record": { "uid": "ev-git-push", "at": "2026-08-29T05:31:45Z" },
+      "principal": { "id": "openai-codex", "kind": "codex_worker" },
+      "action_name": "repository.push",
+      "result_code": "ok",
+      "side_effect": true,
+      "tool": "git",
+      "from": "git-local",
+      "to": { "system": "github", "boundary": "outside_org" },
+      "object": { "kind": "git-release", "categories": ["source_code", "project_documentation"] },
+      "approval_link": "ev-release-approval",
+      "correlation_key": "policy-ledger-release-push",
+      "try": 1
+    },
+    {
+      "record": { "uid": "ev-ci-status", "at": "2026-08-29T05:32:36Z" },
+      "principal": { "id": "openai-codex", "kind": "codex_worker" },
+      "action_name": "ci.status.read",
+      "result_code": "ok",
+      "side_effect": false,
+      "tool": "gh",
+      "from": "github-actions",
+      "to": { "system": "local-workspace", "boundary": "on_device" },
+      "object": { "kind": "ci-status", "categories": ["test_results", "deployment_metadata"] }
+    },
+    {
+      "record": { "uid": "ev-vercel-status", "at": "2026-08-29T05:32:40Z" },
+      "principal": { "id": "openai-codex", "kind": "codex_worker" },
+      "action_name": "deploy.status.read",
+      "result_code": "ok",
+      "side_effect": false,
+      "tool": "gh-api",
+      "from": "vercel",
+      "to": { "system": "local-workspace", "boundary": "on_device" },
+      "object": { "kind": "deployment-status", "categories": ["deployment_metadata"] }
+    },
+    {
+      "record": { "uid": "ev-public-browser-verification", "at": "2026-08-29T05:34:10Z" },
+      "principal": { "id": "openai-codex", "kind": "codex_worker" },
+      "action_name": "deployment.inspect",
+      "result_code": "ok",
+      "side_effect": false,
+      "tool": "browser",
+      "from": "vercel",
+      "to": { "system": "local-workspace", "boundary": "on_device" },
+      "object": { "kind": "deployed-application", "categories": ["deployment_metadata", "test_results"] }
+    },
+    {
+      "record": { "uid": "ev-release-evidence-record", "at": "2026-08-29T05:35:00Z" },
+      "principal": { "id": "openai-codex", "kind": "codex_worker" },
+      "action_name": "workspace.document",
+      "result_code": "ok",
+      "side_effect": true,
+      "tool": "apply_patch",
+      "from": "local-workspace",
+      "to": { "system": "local-workspace", "boundary": "on_device" },
+      "object": { "kind": "local-assistance-log", "categories": ["project_documentation", "deployment_metadata"] },
+      "correlation_key": "release-evidence-record",
+      "try": 1
+    }
+  ]
+}

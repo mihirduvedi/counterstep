@@ -1,0 +1,294 @@
+{
+  "schemaVersion": "agent-receipt.native-trace.v1",
+  "traceId": "trace-codex-policy-ledger-release-2026-08-29",
+  "agent": {
+    "id": "openai-codex",
+    "name": "Codex",
+    "version": "gpt-5"
+  },
+  "startedAt": "2026-08-29T04:45:00Z",
+  "completedAt": "2026-08-29T05:35:00Z",
+  "status": "succeeded",
+  "events": [
+    {
+      "id": "ev-repository-inspection",
+      "timestamp": "2026-08-29T04:45:00Z",
+      "actor": {
+        "type": "agent",
+        "id": "openai-codex"
+      },
+      "operation": "read",
+      "toolName": "filesystem",
+      "sourceSystem": "local-workspace",
+      "destinationBoundary": "local",
+      "resourceType": "repository-source",
+      "dataCategories": [
+        "source_code",
+        "project_documentation"
+      ],
+      "quantity": {
+        "value": 83,
+        "unit": "files"
+      },
+      "stateChange": false,
+      "status": "succeeded",
+      "output": {
+        "summary": "Inspected the product boundary, implementation, tests, and release documentation."
+      }
+    },
+    {
+      "id": "ev-policy-ledger-implementation",
+      "timestamp": "2026-08-29T04:55:00Z",
+      "actor": {
+        "type": "agent",
+        "id": "openai-codex"
+      },
+      "operation": "update",
+      "toolName": "apply_patch",
+      "sourceSystem": "local-workspace",
+      "destinationSystem": "local-workspace",
+      "destinationBoundary": "local",
+      "resourceType": "repository-source",
+      "dataCategories": [
+        "source_code",
+        "project_documentation"
+      ],
+      "quantity": {
+        "value": 22,
+        "unit": "files"
+      },
+      "stateChange": true,
+      "status": "succeeded",
+      "actionKey": "policy-ledger-implementation",
+      "attempt": 1,
+      "output": {
+        "summary": "Implemented the deterministic Policy Decision Ledger and the two requested interface repairs."
+      }
+    },
+    {
+      "id": "ev-local-verification",
+      "timestamp": "2026-08-29T05:20:00Z",
+      "actor": {
+        "type": "agent",
+        "id": "openai-codex"
+      },
+      "operation": "execute",
+      "toolName": "npm",
+      "sourceSystem": "local-workspace",
+      "destinationSystem": "local-shell",
+      "destinationBoundary": "local",
+      "resourceType": "verification-suite",
+      "dataCategories": [
+        "source_code",
+        "test_results"
+      ],
+      "quantity": {
+        "value": 351,
+        "unit": "records"
+      },
+      "stateChange": false,
+      "status": "succeeded",
+      "output": {
+        "summary": "Lint, strict TypeScript, 351 tests, production build, release audit, evaluation, UI scan, link audit, browser QA, and PDF QA passed."
+      }
+    },
+    {
+      "id": "ev-release-approval",
+      "timestamp": "2026-08-29T05:31:15Z",
+      "actor": {
+        "type": "human",
+        "id": "project-owner"
+      },
+      "operation": "approve",
+      "toolName": "codex-chat",
+      "destinationBoundary": "local",
+      "resourceType": "release-authorization",
+      "dataCategories": [],
+      "stateChange": false,
+      "status": "succeeded",
+      "approvalRef": "ev-git-push",
+      "output": {
+        "summary": "The project owner explicitly approved the reviewed commit, push, and deployment."
+      }
+    },
+    {
+      "id": "ev-git-commit",
+      "timestamp": "2026-08-29T05:31:30Z",
+      "actor": {
+        "type": "agent",
+        "id": "openai-codex"
+      },
+      "operation": "create",
+      "toolName": "git",
+      "sourceSystem": "local-workspace",
+      "destinationSystem": "git-local",
+      "destinationBoundary": "local",
+      "resourceType": "git-commit",
+      "dataCategories": [
+        "source_code",
+        "project_documentation"
+      ],
+      "quantity": {
+        "value": 22,
+        "unit": "files"
+      },
+      "stateChange": true,
+      "status": "succeeded",
+      "actionKey": "policy-ledger-release-commit",
+      "attempt": 1,
+      "output": {
+        "commit": "27e740cfafd31a0e5f07162ddf79dd4b9ba86aea",
+        "summary": "Created the reviewed Policy Decision Ledger release commit."
+      }
+    },
+    {
+      "id": "ev-git-push",
+      "timestamp": "2026-08-29T05:31:45Z",
+      "actor": {
+        "type": "agent",
+        "id": "openai-codex"
+      },
+      "operation": "send",
+      "toolName": "git",
+      "sourceSystem": "git-local",
+      "destinationSystem": "github",
+      "destinationBoundary": "external",
+      "resourceType": "git-release",
+      "dataCategories": [
+        "source_code",
+        "project_documentation"
+      ],
+      "quantity": {
+        "value": 22,
+        "unit": "files"
+      },
+      "stateChange": true,
+      "status": "succeeded",
+      "approvalRef": "ev-release-approval",
+      "actionKey": "policy-ledger-release-push",
+      "attempt": 1,
+      "output": {
+        "repository": "mihirduvedi/agent-receipt",
+        "branch": "main",
+        "commit": "27e740cfafd31a0e5f07162ddf79dd4b9ba86aea"
+      }
+    },
+    {
+      "id": "ev-ci-status",
+      "timestamp": "2026-08-29T05:32:36Z",
+      "actor": {
+        "type": "agent",
+        "id": "openai-codex"
+      },
+      "operation": "retrieve",
+      "toolName": "gh",
+      "sourceSystem": "github-actions",
+      "destinationSystem": "local-workspace",
+      "destinationBoundary": "local",
+      "resourceType": "ci-status",
+      "dataCategories": [
+        "test_results",
+        "deployment_metadata"
+      ],
+      "quantity": {
+        "value": 1,
+        "unit": "records"
+      },
+      "stateChange": false,
+      "status": "succeeded",
+      "output": {
+        "runId": "33236376079",
+        "conclusion": "success"
+      }
+    },
+    {
+      "id": "ev-vercel-status",
+      "timestamp": "2026-08-29T05:32:40Z",
+      "actor": {
+        "type": "agent",
+        "id": "openai-codex"
+      },
+      "operation": "retrieve",
+      "toolName": "gh-api",
+      "sourceSystem": "vercel",
+      "destinationSystem": "local-workspace",
+      "destinationBoundary": "local",
+      "resourceType": "deployment-status",
+      "dataCategories": [
+        "deployment_metadata"
+      ],
+      "quantity": {
+        "value": 1,
+        "unit": "records"
+      },
+      "stateChange": false,
+      "status": "succeeded",
+      "output": {
+        "deployment": "3Uuqw28rv8otVtJzuDvz73NwQ8mL",
+        "conclusion": "success"
+      }
+    },
+    {
+      "id": "ev-public-browser-verification",
+      "timestamp": "2026-08-29T05:34:10Z",
+      "actor": {
+        "type": "agent",
+        "id": "openai-codex"
+      },
+      "operation": "read",
+      "toolName": "browser",
+      "sourceSystem": "vercel",
+      "destinationSystem": "local-workspace",
+      "destinationBoundary": "local",
+      "resourceType": "deployed-application",
+      "dataCategories": [
+        "deployment_metadata",
+        "test_results"
+      ],
+      "quantity": {
+        "value": 3,
+        "unit": "records"
+      },
+      "stateChange": false,
+      "status": "succeeded",
+      "output": {
+        "url": "https://receipt-one-flax.vercel.app/",
+        "journeys": [
+          "expected",
+          "overreaching",
+          "incomplete"
+        ],
+        "browserErrors": 0
+      }
+    },
+    {
+      "id": "ev-release-evidence-record",
+      "timestamp": "2026-08-29T05:35:00Z",
+      "actor": {
+        "type": "agent",
+        "id": "openai-codex"
+      },
+      "operation": "update",
+      "toolName": "apply_patch",
+      "sourceSystem": "local-workspace",
+      "destinationSystem": "local-workspace",
+      "destinationBoundary": "local",
+      "resourceType": "local-assistance-log",
+      "dataCategories": [
+        "project_documentation",
+        "deployment_metadata"
+      ],
+      "quantity": {
+        "value": 2,
+        "unit": "files"
+      },
+      "stateChange": true,
+      "status": "succeeded",
+      "actionKey": "release-evidence-record",
+      "attempt": 1,
+      "output": {
+        "summary": "Recorded exact-SHA release evidence in the ignored local assistance log and continuation handoff."
+      }
+    }
+  ]
+}

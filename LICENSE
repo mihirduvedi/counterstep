@@ -1,0 +1,85 @@
+COUNTERSTEP PROPRIETARY EVALUATION LICENSE
+Version 1.0 — August 26, 2026
+
+Copyright (c) 2026 Counterstep Authors. All rights reserved.
+
+1. Definitions
+
+"Software" means the Counterstep source code, object code, documentation,
+screenshots, designs, and other materials made available with this license.
+
+"Hosted Service" means an instance of Counterstep that the copyright holders
+or their authorized licensees make available for end-user interaction.
+
+2. Hosted Service permission
+
+You may use the functionality of an authorized Hosted Service subject to the
+terms displayed for that service. Using a Hosted Service does not grant you any
+right to access, copy, modify, distribute, or otherwise use the Software.
+
+3. Limited evaluation permission
+
+Subject to this license, you may view the Software and make a reasonable number
+of unmodified copies solely to:
+
+  a. evaluate the Counterstep hackathon submission as a judge, organizer, or
+     prospective user; or
+  b. conduct a non-commercial technical or security review to decide whether to
+     request a separate written license.
+
+This permission includes cloning or forking the repository and running an
+unmodified copy for those limited evaluation purposes. It is personal,
+revocable, non-exclusive, non-transferable, and non-sublicensable.
+
+4. Restrictions
+
+Except with prior written permission from the copyright holders, you may not:
+
+  a. use the Software or any portion of it for production, commercial, internal
+     operational, or service-provider purposes;
+  b. modify, adapt, translate, reverse engineer, or create derivative works from
+     the Software;
+  c. reproduce or use the Software to build, benchmark, improve, or operate a
+     product or service that replicates or competes with Counterstep;
+  d. publish, distribute, sell, rent, lease, sublicense, or otherwise make the
+     Software or a derivative work available to another person;
+  e. incorporate the Software into another product, codebase, dataset, or
+     service;
+  f. use the Software, screenshots, documentation, or other repository content
+     to train, fine-tune, evaluate, or generate code with a machine-learning
+     system; or
+  g. remove or alter copyright, license, attribution, or proprietary notices.
+
+The limited permissions in Section 3 do not authorize any restricted activity.
+
+5. Ownership and reserved rights
+
+The Software is proprietary and is not open-source software. The copyright
+holders retain all right, title, and interest in the Software. No patent,
+trademark, trade-secret, publicity, or other intellectual-property right is
+granted by implication, estoppel, or otherwise. All rights not expressly
+granted are reserved.
+
+6. Separate licenses
+
+The copyright holders may offer separate commercial, development, partnership,
+or contribution terms in writing. Third-party dependencies remain governed by
+their respective licenses.
+
+7. Termination
+
+Your permission under this license terminates automatically if you breach it.
+Upon termination, you must stop using the Software and delete copies under your
+control, except for copies GitHub must retain to operate its platform or copies
+that applicable law requires you to keep.
+
+8. Disclaimer and limitation of liability
+
+THE SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, TITLE, AND NON-INFRINGEMENT. TO THE MAXIMUM EXTENT PERMITTED BY LAW,
+THE COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY ARISING FROM OR RELATED TO THE SOFTWARE OR ITS USE.
+
+To request permission beyond this license, contact the Counterstep copyright
+holders through the repository owner.
