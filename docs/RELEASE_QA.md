@@ -6,11 +6,11 @@ Evidence snapshot: August 31, 2026. This ledger separates repository checks, emu
 
 | Item | Exact value | Status |
 |---|---|---|
-| Release commit | `4cd8b3308c9c6216b63999bf89882725cafb22f6` | Local `HEAD` and `origin/main` match |
-| Hosted CI | [Run `33362745744`](https://github.com/mihirduvedi/counterstep/actions/runs/33362745744) | Passed on the release commit |
-| Cloud Build | `d97c03af-8861-45aa-aa4c-448c3394a425` | `SUCCESS` |
-| Cloud Run revision | `counterstep-00004-hp4` | Ready, 100% traffic |
-| Image digest | `sha256:4f18e727f09489fccb48a06236b0053b99b4bf6d22ac28380f8d12af7c41ad28` | Bound to the exact-source build |
+| Deployed source commit | `5890e2b09049564130428f3d6cc4a768b221b180` | Pushed to `main` before the docs/media follow-up |
+| Hosted CI | [Run `33368011137`](https://github.com/mihirduvedi/counterstep/actions/runs/33368011137) | Passed on the deployed source commit |
+| Cloud Build | `e734fe09-5e29-41cc-a6fd-310ab8f186c3` | `SUCCESS` |
+| Cloud Run revision | `counterstep-00005-nft` | Ready, 100% traffic |
+| Image digest | `sha256:766f1d07da7cb4f853638c93659a995926a7a8eadc6eec56ceb67d19efaa42c4` | Bound to the exact-source build |
 | Public demo | <https://counterstep-27573808078.us-central1.run.app> | HTTP 200 and healthy |
 
 ## Repository gate
@@ -71,7 +71,7 @@ Fixture mode proves the visible deterministic journey and shared gate/tool/closu
 
 - Managed Firestore build `0a89c790-f5f7-4e16-95c4-b0362b60b7df` passed six retained production-adapter cases.
 - Two strict smoke journeys and one continuous browser journey passed with Gemini 3.5 Flash Lite through Google ADK on Vertex AI and managed Firestore on the immediately preceding equivalent runtime revision.
-- The exact-source replacement revision `counterstep-00004-hp4` passed the public health contract without spending another model request.
+- The exact-source replacement revision `counterstep-00005-nft` passed the public health contract without spending another model request.
 - `GET /api/health` currently returns HTTP 200 with Cloud Run, reachable Firestore, `vertex-ai`, Gemini mode, `gemini-3.5-flash-lite`, and `google-adk-typescript`.
 - The service remains min zero / max one with request-based CPU, concurrency one, and a 10-run UTC daily application cap.
 
@@ -99,7 +99,7 @@ Completed:
 | Public health endpoint | HTTP 200 with the expected production contract | Ready |
 | GitHub repository | HTTP 404 while signed out because the repository is private | Before submission, make it public or grant the two required judge accounts access |
 | Hosted CI link | HTTP 404 while signed out for the same private-repository reason | Resolves with repository access |
-| Demo video | Not supplied yet | Add the public YouTube or Vimeo URL after signed-out playback and caption checks |
+| Demo video | Public YouTube watch page is playable and embeddable signed out; 177-second duration and English captions confirmed; repository fallback and English SRT retained | Ready |
 
 If the repository remains private, grant access to both judge accounts named in
 the [official FAQ](https://allthingsagentichackathon.devpost.com/details/faqs).
@@ -116,10 +116,10 @@ Do not describe the product as accessibility-certified. Record the exact browser
 
 ## Remaining submission gates
 
-- [ ] Add the final public YouTube or Vimeo URL to `docs/SUBMISSION.md` after a signed-out playback and English-caption check.
-- [ ] Confirm the final Devpost team list and eligibility.
+- [x] Add the final public YouTube URL to `docs/SUBMISSION.md` after a signed-out playback, embedding, duration, and English-caption check.
+- [ ] Confirm the prepared solo team line (`Mihir Duvedi`) matches the actual Devpost team and eligibility.
 - [ ] Make the repository public, or grant the required private-repository access to both judge accounts.
-- [ ] Verify the repository, CI, live demo, video, architecture diagram, and all submission links signed out after the final release.
+- [ ] Verify the repository, CI, live demo, official YouTube/Vimeo video, architecture diagram, and all submission links signed out after the final release.
 - [ ] Capture the final Devpost preview and confirm the **Taskmaster** category.
 - [ ] If claiming optional bonus points, publish the build article and social post publicly, verify both signed out, and add their URLs to Devpost.
 - [ ] Submit before August 31, 2026 at 5:00 PM Pacific Time.

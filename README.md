@@ -8,13 +8,21 @@ This is an action system, not a chat interface. The model can decide which allow
 
 **Live demo:** https://counterstep-27573808078.us-central1.run.app
 
+**Submission video:** [watch the 2:57 demo](https://youtu.be/8Bh8_6sFMNc)
+
 **Managed/deployed evidence:** [Google Cloud deployment evidence](./docs/GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md)
 
 **Judge guide:** [A 30-second path, a 90-second path, and exact evidence boundaries](./docs/JUDGE_GUIDE.md)
 
-**Submission kit:** [Devpost copy](./docs/SUBMISSION.md) · [four-minute demo script](./docs/DEMO_SCRIPT.md) · [public build article](./docs/BUILD_ARTICLE.md) · [social copy](./docs/SOCIAL_POST.md)
+**Submission kit:** [Devpost copy](./docs/SUBMISSION.md) · [video production record](./docs/DEMO_SCRIPT.md) · [public build article](./docs/BUILD_ARTICLE.md) · [social copy](./docs/SOCIAL_POST.md)
 
 **Documentation map:** [current submission evidence vs. retained Agent Receipt foundation](./docs/README.md)
+
+## Submission video
+
+[![Watch the Counterstep submission video](./docs/media/counterstep-submission-background.png)](https://youtu.be/8Bh8_6sFMNc)
+
+[Watch the 2:57 submission video on YouTube](https://youtu.be/8Bh8_6sFMNc). Signed-out playback, embedding, duration, and English-caption availability were verified on August 31, 2026. A [repository video copy](./docs/media/counterstep-submission-video.mp4) and [English captions](./docs/media/counterstep-submission-video.en.srt) are retained as download fallbacks.
 
 ## If you have one minute
 
@@ -316,9 +324,9 @@ Confirmed through August 31, 2026:
 - three live `gemini-3.5-flash-lite` runs through Google ADK pass the strict evidence gate with six bounded tool calls, two authorized writes, 12 accounted events, an in-authority action receipt, and a downloaded digest-valid closure each;
 - one additional live attempt failed closed before inspection with zero tool calls and zero writes; a later fresh run passed, and the evaluator now reports such deterministic terminal results before requesting a nonexistent receipt;
 - the read-only cloud preflight passes for the confirmed Counterstep project with billing, Vertex AI, Artifact Registry, Cloud Build, Firestore, IAM, Cloud Run, and the isolated service identities ready;
-- exact-source Cloud Build `d97c03af-8861-45aa-aa4c-448c3394a425` succeeded from release commit `4cd8b3308c9c6216b63999bf89882725cafb22f6`;
-- Cloud Run revision `counterstep-00004-hp4` serves 100% of traffic at the public URL from image digest `sha256:4f18e727f09489fccb48a06236b0053b99b4bf6d22ac28380f8d12af7c41ad28`, with min 0 / max 1, request-only CPU, and no deployed Gemini API key;
-- GitHub Actions run [`33362745744`](https://github.com/mihirduvedi/counterstep/actions/runs/33362745744) passed on the exact release commit;
+- exact-source Cloud Build `e734fe09-5e29-41cc-a6fd-310ab8f186c3` succeeded from release commit `5890e2b09049564130428f3d6cc4a768b221b180`;
+- Cloud Run revision `counterstep-00005-nft` serves 100% of traffic at the public URL from image digest `sha256:766f1d07da7cb4f853638c93659a995926a7a8eadc6eec56ceb67d19efaa42c4`, with min 0 / max 1, request-only CPU, and no deployed Gemini API key;
+- GitHub Actions run [`33368011137`](https://github.com/mihirduvedi/counterstep/actions/runs/33368011137) passed on the exact release commit;
 - two strict deployed smoke journeys and one continuous browser journey passed on the immediately preceding equivalent Vertex/Firestore revision with Gemini 3.5 Flash Lite through Google ADK; the exact-source replacement revision then passed its public health contract without spending another model run;
 - the closure download fires, reset/repeat succeeds, and the browser console is clean;
 - browser-driven E3 and E4 runs display exact five-field `Contract matched` verdicts; E4 visibly refuses the stale write before re-inspecting and replanning, while E3 leaves delivered state unresolved;
@@ -328,7 +336,6 @@ Confirmed through August 31, 2026:
 
 Not yet claimed:
 
-- a final unedited hackathon video recording;
 - a real screen-reader pass for the deployed build;
 - signed-out access to the GitHub repository while it remains private.
 

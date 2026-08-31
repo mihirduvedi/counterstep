@@ -7,17 +7,17 @@ This record separates automated, managed, deployed, visual, and still-manual evi
 - URL: https://counterstep-27573808078.us-central1.run.app
 - Google Cloud project: `handy-operation-492002-h3` (`Counterstep Hackathon`)
 - Cloud Run region: `us-central1`
-- live revision: `counterstep-00004-hp4`, 100% traffic
-- exact-source image build: `d97c03af-8861-45aa-aa4c-448c3394a425`
-- Artifact Registry digest: `sha256:4f18e727f09489fccb48a06236b0053b99b4bf6d22ac28380f8d12af7c41ad28`
-- release commit: `4cd8b3308c9c6216b63999bf89882725cafb22f6`
-- hosted CI: `33362745744`, passed on the release commit
+- live revision: `counterstep-00005-nft`, 100% traffic
+- exact-source image build: `e734fe09-5e29-41cc-a6fd-310ab8f186c3`
+- Artifact Registry digest: `sha256:766f1d07da7cb4f853638c93659a995926a7a8eadc6eec56ceb67d19efaa42c4`
+- deployed source commit: `5890e2b09049564130428f3d6cc4a768b221b180`
+- hosted CI: `33368011137`, passed on the deployed source commit
 - build identity: dedicated service account `counterstep-build` in the deployment project
 - runtime identity: separate service account `counterstep-runtime` in the deployment project
 
-The Cloud Build source archive retained for this image is `gs://handy-operation-492002-h3_cloudbuild/source/1788156275.123784-0bd2cb0ee3a440cba739f5d300586d46.tgz`, generation `1788156276602911`, size `1714611`, MD5 `NF3bzOnbL1mSOnP/QTNgMQ==`, and CRC32C `sNW1sw==`. The build completed `SUCCESS` at `2026-08-31T06:08:24.785535Z`.
+The Cloud Build source archive retained for this image is `gs://handy-operation-492002-h3_cloudbuild/source/1788161074.449236-93b3b9f37020456aa66972f610de8e97.tgz`, generation `1788161075526383`, size `1714483`, MD5 `WuEF+CoxGTe3bh4Idquejw==`, and CRC32C `NWrK0g==`. Build `e734fe09-5e29-41cc-a6fd-310ab8f186c3` completed `SUCCESS` at `2026-08-31T07:28:13.571079Z`.
 
-The deployed image came from the exact reviewed and pushed release commit `4cd8b3308c9c6216b63999bf89882725cafb22f6`. Local `HEAD`, local `origin/main`, and the GitHub `main` reference matched that SHA after release, and GitHub Actions run `33362745744` passed on it. This supersedes the historical working-tree-only proof attached to revision `counterstep-00003-q7m`.
+The deployed image came from a clean archive of the exact reviewed and pushed source commit `5890e2b09049564130428f3d6cc4a768b221b180`. GitHub Actions run `33368011137` passed on that SHA before Cloud Build started. The later video/docs commit does not change the deployed application source.
 
 ## Live health contract
 
@@ -74,7 +74,7 @@ A third continuous browser journey passed on the public UI:
 - event coverage: 12 recorded / 12 accounted
 - closure digest: `a02316915f3df45e6d5826883ddf6878a343d8c1022f711671dea9ffcfcf601e`
 
-The immediately following exact-source build changed the source/evidence binding and cloud hardening, not the recovery behavior or runtime contract. Revision `counterstep-00004-hp4` then passed the public health contract with reachable Firestore, Vertex AI, Gemini mode, Gemini 3.5 Flash Lite, and Google ADK TypeScript. No redundant model run was spent after that redeployment. The three journeys above remain live-model evidence from the immediately preceding equivalent runtime; the exact-source revision's claim is deployment plus health, not a fourth model journey.
+The later exact-source revisions passed the public health contract with reachable Firestore, Vertex AI, Gemini mode, Gemini 3.5 Flash Lite, and Google ADK TypeScript. No redundant model run was spent after the final redeployment. The three journeys above remain live-model evidence from the earlier Vertex/Firestore runtime; revision `counterstep-00005-nft` establishes exact-source deployment plus health, not a fourth model journey.
 
 ## Fail-closed evidence and backend decision
 
@@ -118,14 +118,14 @@ SHA-256 integrity values, in the same order as the files above:
 | `counterstep-cloud-run-ready-2026-08-31.jpg` | `6e2f13deb90b474c23f17271bb54bf25ff4bea1bb1951b72586d889ae06bc7a3` |
 | `counterstep-cloud-run-repaired-2026-08-31.jpg` | `4c0f37d49f13f515da31adfe3e616b3f20088103e40abee1ee3c8c8eaf39614d` |
 
-The Cloud Run console screenshot predates the source-binding redeploy and visibly names revision `counterstep-00003-q7m`; it is historical live-journey proof, not a screenshot of revision `counterstep-00004-hp4`. The exact replacement revision is established by the build/service records above and should be shown in the final video capture. These screenshots support repository review and video planning, but they do not substitute for the hackathon's required unedited video segment showing the live action. For the recording, open the public URL, show the current Cloud Run URL/revision or health response, reset the canonical scenario, click **Run Counterstep**, wait continuously, then show `Contract matched`, the 12-event ledger, deterministic closure, and Firestore run document.
+The Cloud Run console screenshot predates the source-binding redeploy and visibly names revision `counterstep-00003-q7m`; it is historical live-journey proof, not a screenshot of revision `counterstep-00005-nft`. The exact replacement revision is established by the build and service records above. The finished 2:57 submission video includes one continuous public E1 execution at 1x speed, the public health response, the 12-event ledger, deterministic closure, and separate Firestore console evidence. Its public YouTube watch page passed signed-out playback and embedding checks on August 31, 2026; YouTube reported a 177-second duration and English captions.
 
 ## Verification boundary
 
-- Automated local: passed after the Vertex/backend change; 38 files, 444 tests, strict TypeScript, lint, Next.js production build, release/privacy audit.
+- Automated local: passed on the deployed source candidate; 38 files, 445 tests, strict TypeScript, lint, Next.js production build, release/privacy audit.
 - Managed Firestore: passed, six retained-write cases in Google Cloud.
-- Exact-source deployed health: passed on Cloud Run revision `counterstep-00004-hp4` at 100% traffic.
+- Exact-source deployed health: passed on Cloud Run revision `counterstep-00005-nft` at 100% traffic.
 - Deployed smoke: passed twice with live Gemini 3.5 / Google ADK / Vertex AI and managed Firestore on immediately preceding equivalent revision `counterstep-00003-q7m`; a third continuous public-browser journey also passed there.
 - Deployed visual: ready and repaired states captured at 1280 x 720; Cloud Run, Firestore, and budget console screenshots captured separately.
 - Accessibility: prior local checks remain valid for the tested build; no new real screen-reader pass was performed in this cloud-evidence slice.
-- Video: shot assets and an exact continuous path are ready; the final unedited recording remains manual.
+- Video: the 177.195-second master, public YouTube upload, signed-out playback and embedding, English captions, repository fallback, and deterministic media QC are complete.

@@ -1,6 +1,6 @@
 # Counterstep submission copy
 
-Paste-ready material for the Google All Things Agentic Hackathon. Replace only the bracketed video and team fields after the final signed-out checks.
+Paste-ready material for the Google All Things Agentic Hackathon. The finished public YouTube video and repository fallback are ready. The team line reflects the repository's sole author; adjust it only if the actual Devpost team includes another eligible member.
 
 ## Project title
 
@@ -80,10 +80,10 @@ The cloud path also failed honestly before it succeeded. The first Developer API
 - Four judge-selectable recovery conditions use the same P0 service and authority boundary.
 - E4 causes a real atomic sandbox version bump, a real `stale_revision` refusal, full re-inspection, and one bounded replan.
 - E3 closes `partially_repaired` and never describes a delivered message as recalled.
-- The exact release passes 444 automated tests, a strict production build, release/privacy scans, five deterministic evaluation cases, and eight production-repository emulator cases.
+- The exact release passes 445 automated tests, a strict production build, release/privacy scans, five deterministic evaluation cases, and eight production-repository emulator cases.
 - Six retained production-adapter cases passed against managed Firestore.
 - Three live Gemini/ADK/Vertex journeys passed with six bounded tool calls, two authorized writes, 12 accounted events, and digest-valid closures.
-- The exact-source Cloud Run revision is public, healthy, and bound to release commit `4cd8b3308c9c6216b63999bf89882725cafb22f6`.
+- The exact-source Cloud Run revision is public, healthy, and bound to release commit `5890e2b09049564130428f3d6cc4a768b221b180`.
 
 ## What was learned
 
@@ -136,13 +136,13 @@ npm run test:firestore
 
 - Live demo: <https://counterstep-27573808078.us-central1.run.app>
 - Repository: <https://github.com/mihirduvedi/counterstep>
-- Demo video, four minutes maximum: `[ADD PUBLIC YOUTUBE OR VIMEO URL AFTER SIGNED-OUT PLAYBACK AND CAPTION CHECK]`
-- Team members: `[CONFIRM THE FINAL DEVPOST TEAM LIST]`
+- Demo video, four minutes maximum: <https://youtu.be/8Bh8_6sFMNc> (signed-out playback, embedding, duration, and English captions verified August 31, 2026)
+- Team members: Mihir Duvedi
 
 ## Final submission check
 
 - Select exactly one category: **Taskmaster**.
-- Confirm every listed team member is eligible and has accepted the Devpost invite.
+- Confirm the listed team member is eligible and signed into the intended Devpost account.
 - Make the repository public, or keep it private and grant access to both judge
   accounts named in the [official FAQ](https://allthingsagentichackathon.devpost.com/details/faqs)
   before submission.
@@ -150,6 +150,6 @@ npm run test:firestore
 - Keep the video at or below four minutes, public on YouTube or Vimeo, and in English or captioned in English.
 - Preserve one continuous, unedited live-action segment and show the `.run.app` URL or Google Cloud console proof in the video.
 - If using the optional bonuses, publish [BUILD_ARTICLE.md](BUILD_ARTICLE.md) on a public platform with its hackathon-purpose disclosure, publish [SOCIAL_POST.md](SOCIAL_POST.md) with `#AllThingsAgenticHackathon`, and add both public URLs to the Devpost form.
-- Replace both bracketed fields above. Search the tracked repository for `ADD PUBLIC`, `CONFIRM THE FINAL`, and stale challenge names.
+- If the actual Devpost team includes another eligible member, add that person before submission. Search the tracked repository for placeholders and stale challenge names.
 - Submit before August 31, 2026 at 5:00 PM Pacific Time.
 - After submission, do not change the repository, video, or submitted app through the judging period. Use a separate fork for later work.

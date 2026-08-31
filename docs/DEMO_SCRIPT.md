@@ -1,6 +1,6 @@
-# Counterstep four-minute demo
+# Counterstep submission video production record
 
-Target length: 3 minutes 45 seconds. Record at 1920 × 1080 or 1280 × 720, keep browser zoom at 100%, hide personal tabs and notifications, and use only the synthetic Counterstep demo.
+Final length: 2 minutes 57.195 seconds. The 1920 × 1080 H.264/AAC master uses only the synthetic Counterstep demo and includes the continuous live-action eligibility segment below.
 
 The live-action section below is the eligibility proof. Keep it continuous and unedited from the visible `.run.app` address through the terminal closure state.
 
@@ -62,7 +62,7 @@ When the result appears:
 
 **Say:**
 
-“The exact source release passed 444 tests, five deterministic evaluations, eight production-repository emulator cases, a production build, and release/privacy scans. Managed Firestore passed six retained cases. Three Vertex-backed Gemini and ADK journeys produced digest-valid closures. Counterstep is new hackathon work built on a precisely disclosed Agent Receipt evidence foundation.”
+“The exact source release passed 445 tests, five deterministic evaluations, eight production-repository emulator cases, a production build, and release/privacy scans. Managed Firestore passed six retained cases. Three Vertex-backed Gemini and ADK journeys produced digest-valid closures. Counterstep is new hackathon work built on a precisely disclosed Agent Receipt evidence foundation.”
 
 ### 3:30–3:45 · Close
 
@@ -72,7 +72,7 @@ When the result appears:
 
 “Observability can tell us an agent overstepped. Counterstep completes the bounded repair and leaves proof another operator can inspect.”
 
-## Capture checklist
+## Production and upload checklist
 
 - Use the exact public URL <https://counterstep-27573808078.us-central1.run.app>.
 - Check `/api/health` immediately before recording. It must report Cloud Run, reachable Firestore, Vertex AI, Gemini mode, Gemini 3.5 Flash Lite, and Google ADK TypeScript.
@@ -82,6 +82,7 @@ When the result appears:
 - Keep runtime provenance visible when showing fixture footage.
 - Add accurate English captions and review every technical term, count, and digest label.
 - Use no private console identifiers beyond the public project/service evidence already recorded in the repository.
-- Export at or below 4:00. Watch the final file from start to finish before upload.
-- Upload publicly to YouTube or Vimeo, then verify playback and captions while signed out.
-- Paste the final URL into [SUBMISSION.md](SUBMISSION.md#links) and the Devpost form only after the signed-out check.
+- [x] Export at or below 4:00 and watch the final file from start to finish.
+- [x] Upload publicly to YouTube and verify playback, embedding, duration, and English captions while signed out.
+- [x] Paste the final URL into [SUBMISSION.md](SUBMISSION.md#links) after the signed-out check.
+- Paste the same URL into the Devpost form.

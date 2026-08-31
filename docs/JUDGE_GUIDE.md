@@ -6,7 +6,9 @@ Counterstep is a post-run recovery agent for a completed AI-agent workflow that 
 
 **Repository:** <https://github.com/mihirduvedi/counterstep>
 
-**Exact release:** `4cd8b3308c9c6216b63999bf89882725cafb22f6` · Cloud Run `counterstep-00004-hp4` · [CI `33362745744`](https://github.com/mihirduvedi/counterstep/actions/runs/33362745744)
+**Submission video:** [2:57 public YouTube demo](https://youtu.be/8Bh8_6sFMNc) · [repository fallback](media/counterstep-submission-video.mp4) · [English captions](media/counterstep-submission-video.en.srt)
+
+**Exact release:** `5890e2b09049564130428f3d6cc4a768b221b180` · Cloud Run `counterstep-00005-nft` · [CI `33368011137`](https://github.com/mihirduvedi/counterstep/actions/runs/33368011137)
 
 ## If you have 30 seconds
 
@@ -99,7 +101,7 @@ npm run test:firestore
 - **Firestore emulator:** eight production-repository cases passed locally. This is not managed-cloud evidence.
 - **Managed Firestore:** six retained production-adapter cases passed in Cloud Build.
 - **Live Gemini / Google ADK:** three Vertex-backed runs passed with six bounded tool calls, two authorized writes, 12 accounted events, and digest-valid closures.
-- **Exact-source deployment:** build `d97c03af-8861-45aa-aa4c-448c3394a425`, revision `counterstep-00004-hp4`, and CI `33362745744` are bound to release commit `4cd8b3308c9c6216b63999bf89882725cafb22f6`. The replacement revision passed its health contract; the three model journeys were recorded on the immediately preceding equivalent runtime revision.
+- **Exact-source deployment:** build `e734fe09-5e29-41cc-a6fd-310ab8f186c3`, revision `counterstep-00005-nft`, and CI `33368011137` are bound to release commit `5890e2b09049564130428f3d6cc4a768b221b180`. The replacement revision passed its health contract; the three model journeys were recorded on the earlier equivalent Vertex/Firestore runtime revision.
 - **Visual/accessibility:** responsive, reduced-motion, forced-colors, semantic, focus, and target-size checks are recorded separately. No claim of accessibility certification is made.
 - **Synthetic scope:** no real spreadsheet, email, customer record, or private trace is used.
 

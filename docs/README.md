@@ -8,7 +8,8 @@ current Counterstep submission from the retained Agent Receipt foundation.
 
 - [JUDGE_GUIDE.md](JUDGE_GUIDE.md) — 30-second and 90-second product paths.
 - [SUBMISSION.md](SUBMISSION.md) — paste-ready Devpost copy and final form check.
-- [DEMO_SCRIPT.md](DEMO_SCRIPT.md) — a sub-four-minute recording plan.
+- [DEMO_SCRIPT.md](DEMO_SCRIPT.md) — the finished sub-four-minute video production record.
+- [Public YouTube submission video](https://youtu.be/8Bh8_6sFMNc) — signed-out-verified playback, embedding, duration, and English captions; [repository fallback](media/counterstep-submission-video.mp4) and [English captions](media/counterstep-submission-video.en.srt).
 - [RELEASE_QA.md](RELEASE_QA.md) — current verification ledger and remaining gates.
 - [GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md](GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md) — exact build, revision, digest, CI, Firestore, and live-model evidence.
 - [RECOVERY_TEST_RACK_2026-08-30.md](RECOVERY_TEST_RACK_2026-08-30.md) — E1–E4 contract evidence.

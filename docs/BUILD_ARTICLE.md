@@ -66,7 +66,7 @@ The project has several kinds of proof, and they do not substitute for each othe
 
 A deterministic fixture proves the shared orchestration, gates, tools, state changes, scenario assessment, and closure logic. The official local Firestore emulator exercises the production repository transaction code without claiming managed infrastructure. A retained-write suite in Cloud Build establishes managed Firestore behavior. Live Vertex-backed journeys establish Gemini and Google ADK behavior. Cloud Run health proves the exact deployed runtime contract. Rendered browser checks cover only the states and viewports that were actually inspected.
 
-The exact source release passed 444 automated tests, five deterministic evaluation cases, eight production-repository emulator cases, a Next.js production build, strict TypeScript, ESLint, and release/privacy scans. Six retained production-adapter cases passed against managed Firestore. Three live Gemini and ADK journeys produced two authorized writes, 12 accounted events, and digest-valid closures.
+The exact source release passed 445 automated tests, five deterministic evaluation cases, eight production-repository emulator cases, a Next.js production build, strict TypeScript, ESLint, and release/privacy scans. Six retained production-adapter cases passed against managed Firestore. Three live Gemini and ADK journeys produced two authorized writes, 12 accounted events, and digest-valid closures.
 
 ## Reuse without pretending the clock restarted
 
@@ -85,3 +85,5 @@ The model handles the part that benefits from reasoning. Deterministic code hand
 Project: <https://github.com/mihirduvedi/counterstep>
 
 Live demo: <https://counterstep-27573808078.us-central1.run.app>
+
+Submission video: <https://youtu.be/8Bh8_6sFMNc>
