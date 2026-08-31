@@ -30,16 +30,22 @@ describe("read-only Cloud deployment preflight", () => {
     expect(() => parseCloudPreflightConfig(environment)).toThrow();
   });
 
-  it("locks Cloud Run to the P0 cost, identity, and secret envelope", () => {
+  it("locks the public Cloud Run demo to the fixture cost, quota, identity, and secret envelope", () => {
     const config = readFileSync("cloudbuild.yaml", "utf8");
     expect(config).toContain("--service-account=${_SERVICE_ACCOUNT}@$PROJECT_ID.iam.gserviceaccount.com");
-    expect(config).toContain("GOOGLE_GENAI_USE_ENTERPRISE=true");
-    expect(config).toContain("GOOGLE_CLOUD_LOCATION=global");
+    expect(config).toContain("COUNTERSTEP_AGENT_MODE=fixture");
+    expect(config).toContain("COUNTERSTEP_REPOSITORY=memory");
+    expect(config).not.toContain("COUNTERSTEP_AGENT_MODE=gemini");
+    expect(config).not.toContain("COUNTERSTEP_REPOSITORY=firestore");
+    expect(config).not.toContain("GOOGLE_GENAI_USE_ENTERPRISE");
+    expect(config).not.toContain("GOOGLE_CLOUD_PROJECT=");
+    expect(config).not.toContain("GOOGLE_CLOUD_LOCATION=");
+    expect(config).not.toContain("FIRESTORE_DATABASE_ID=");
     expect(config).toContain("--memory=512Mi");
     expect(config).toContain("COUNTERSTEP_MAX_DAILY_RUNS=10");
     expect(config).toContain("--cpu-throttling");
     expect(config).toContain("--no-cpu-boost");
-    expect(config).toContain("--timeout=60");
+    expect(config).toContain("--timeout=30");
     expect(config).toContain("--concurrency=1");
     expect(config).toContain("--no-session-affinity");
     expect(config).toContain("--min=0");

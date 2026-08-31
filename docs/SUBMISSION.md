@@ -43,7 +43,7 @@ Counterstep is a strict TypeScript application on Next.js 16.3.3. The browser ta
 
 Gemini receives minimized incident facts and inspected sandbox state. It can choose and sequence a recovery, but deterministic code owns policy evaluation, plan admission, write authority, stale-version handling, the action-receipt verdict, and the closure outcome.
 
-Firestore persists synthetic demos, resource versions, approved plans, event ledgers, idempotency records, daily admission counters, and closure receipts. The deployed service uses Vertex AI and Firestore through separate workload identities. No Gemini API key is present in the Cloud Run revision.
+Firestore persisted the recorded live-evidence demos, resource versions, approved plans, event ledgers, idempotency records, daily admission counters, and closure receipts. That revision used Vertex AI and Firestore through separate workload identities and contained no Gemini API key. The current public revision is the same application image in deterministic fixture/memory mode.
 
 The repository includes a credential-free fixture mode, deterministic evaluation cases, a production Firestore adapter suite against the official local emulator, an opt-in retained-write managed Firestore harness, strict cloud smoke checks, and a release/privacy audit.
 
@@ -73,7 +73,7 @@ The hardest part was keeping the model useful without letting it define reality 
 
 Stale state exposed another edge. Counterstep cannot retry a rejected write with a new version and call that safe. It must re-inspect every governed resource, admit one replacement plan, preserve both plans in the receipt, and block if the second attempt also becomes stale.
 
-The cloud path also failed honestly before it succeeded. The first Developer API deployment hit depleted prepaid credits and ended with zero writes. The final deployment uses Vertex AI workload identity instead, with separate build and runtime service accounts and no deployed API key.
+The cloud path also failed honestly before it succeeded. The first Developer API deployment hit depleted prepaid credits and ended with zero writes. The recorded live-evidence deployment then used Vertex AI workload identity, with separate build and runtime service accounts and no deployed API key. After the live proof and video were captured, the public service was deliberately switched to deterministic fixture mode with in-memory synthetic state, and the runtime identity's Vertex AI and Firestore roles were removed so judge traffic cannot consume managed model or database quota.
 
 ## Accomplishments
 
@@ -83,7 +83,7 @@ The cloud path also failed honestly before it succeeded. The first Developer API
 - The exact release passes 445 automated tests, a strict production build, release/privacy scans, five deterministic evaluation cases, and eight production-repository emulator cases.
 - Six retained production-adapter cases passed against managed Firestore.
 - Three live Gemini/ADK/Vertex journeys passed with six bounded tool calls, two authorized writes, 12 accounted events, and digest-valid closures.
-- The exact-source Cloud Run revision is public, healthy, and bound to release commit `5890e2b09049564130428f3d6cc4a768b221b180`.
+- The exact-source Cloud Run image is bound to release commit `5890e2b09049564130428f3d6cc4a768b221b180`; current public revision `counterstep-00006-6nd` serves that image as a quota-isolated synthetic fixture, while the video and evidence record retain the live Gemini/ADK/Vertex/Firestore proof.
 
 ## What was learned
 
@@ -104,7 +104,7 @@ Counterstep is a new remediation layer built during the hackathon on a disclosed
 3. Press **Run Counterstep** once and wait for the terminal state.
 4. Confirm `Contract matched`, one failed `stale_revision` write, two approved plans, two successful remediation writes, 10 tool calls, 20/20 accounted events, and a digest-bearing `repaired` closure.
 
-The public service has a small daily run cap. If it has already been reached, use the local fixture path below. The video and repository evidence remain the authoritative judging proof.
+The public service is a deterministic in-memory fixture with a small daily run cap. It exercises the same gate, tools, event accounting, scenario assessor, and closure contracts without invoking Gemini or Firestore. The video and repository evidence remain the authoritative live-model and managed-service proof.
 
 ### Credential-free local path
 
@@ -134,7 +134,7 @@ npm run test:firestore
 
 ## Links
 
-- Live demo: <https://counterstep-27573808078.us-central1.run.app>
+- Public synthetic demo: <https://counterstep-27573808078.us-central1.run.app> (`fixture` / `memory`; no Gemini or Firestore quota)
 - Repository: <https://github.com/mihirduvedi/counterstep>
 - Demo video, four minutes maximum: <https://youtu.be/8Bh8_6sFMNc> (signed-out playback, embedding, duration, and English captions verified August 31, 2026)
 - Team members: Mihir Duvedi
@@ -143,10 +143,8 @@ npm run test:firestore
 
 - Select exactly one category: **Taskmaster**.
 - Confirm the listed team member is eligible and signed into the intended Devpost account.
-- Make the repository public, or keep it private and grant access to both judge
-  accounts named in the [official FAQ](https://allthingsagentichackathon.devpost.com/details/faqs)
-  before submission.
-- Check the live demo, repository, architecture diagram, video, and every linked evidence page while signed out.
+- Confirm the public repository opens while signed out.
+- Check the public synthetic demo, repository, architecture diagram, video, and every linked evidence page while signed out.
 - Keep the video at or below four minutes, public on YouTube or Vimeo, and in English or captioned in English.
 - Preserve one continuous, unedited live-action segment and show the `.run.app` URL or Google Cloud console proof in the video.
 - If using the optional bonuses, publish [BUILD_ARTICLE.md](BUILD_ARTICLE.md) on a public platform with its hackathon-purpose disclosure, publish [SOCIAL_POST.md](SOCIAL_POST.md) with `#AllThingsAgenticHackathon`, and add both public URLs to the Devpost form.

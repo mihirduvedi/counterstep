@@ -7,7 +7,8 @@ This record separates automated, managed, deployed, visual, and still-manual evi
 - URL: https://counterstep-27573808078.us-central1.run.app
 - Google Cloud project: `handy-operation-492002-h3` (`Counterstep Hackathon`)
 - Cloud Run region: `us-central1`
-- live revision: `counterstep-00005-nft`, 100% traffic
+- current public revision: `counterstep-00006-6nd`, 100% traffic, deterministic fixture / memory
+- exact-source live-evidence revision: `counterstep-00005-nft` (historical Vertex/Firestore health proof)
 - exact-source image build: `e734fe09-5e29-41cc-a6fd-310ab8f186c3`
 - Artifact Registry digest: `sha256:766f1d07da7cb4f853638c93659a995926a7a8eadc6eec56ceb67d19efaa42c4`
 - deployed source commit: `5890e2b09049564130428f3d6cc4a768b221b180`
@@ -19,7 +20,7 @@ The Cloud Build source archive retained for this image is `gs://handy-operation-
 
 The deployed image came from a clean archive of the exact reviewed and pushed source commit `5890e2b09049564130428f3d6cc4a768b221b180`. GitHub Actions run `33368011137` passed on that SHA before Cloud Build started. The later video/docs commit does not change the deployed application source.
 
-## Live health contract
+## Current public health contract
 
 `GET /api/health` returned HTTP 200 on the public URL with:
 
@@ -28,17 +29,19 @@ The deployed image came from a clean archive of the exact reviewed and pushed so
   "ok": true,
   "appVersion": "0.1.0",
   "deployment": "cloud-run",
-  "repository": "firestore",
+  "repository": "memory",
   "repositoryReachable": true,
-  "geminiConfigured": true,
-  "modelBackend": "vertex-ai",
-  "agentMode": "gemini",
+  "geminiConfigured": false,
+  "modelBackend": "unconfigured",
+  "agentMode": "fixture",
   "modelId": "gemini-3.5-flash-lite",
   "agentFramework": "google-adk-typescript"
 }
 ```
 
-The revision uses Cloud Run workload identity for Vertex AI and Firestore. It has no `GEMINI_API_KEY` secret reference. Both runtime and build access to the retained Developer API secret were revoked after the Vertex revision became healthy.
+Current public revision `counterstep-00006-6nd` reuses the exact image digest above but exposes only `COUNTERSTEP_AGENT_MODE=fixture`, `COUNTERSTEP_REPOSITORY=memory`, and a 10-run daily limit. It has no Gemini, Vertex AI, or Firestore environment configuration and no `GEMINI_API_KEY` secret reference. The runtime identity's `roles/aiplatform.user` and `roles/datastore.user` bindings were removed after the fixture revision became healthy; only `roles/serviceusage.serviceUsageConsumer` remains. Anonymous traffic therefore cannot invoke Gemini or read/write managed Firestore through this service.
+
+A signed-out E1 run on the public fixture reached `repaired` with generation source `deterministic_fixture`, no model ID, two synthetic writes, 12 events, six tool calls, one approved plan, and an exact scenario match. This establishes the hosted deterministic journey, not a new live-model or managed-database run. The historical `counterstep-00005-nft` health response and the three retained journeys below establish the earlier Vertex/Firestore deployment separately.
 
 ## Managed Firestore evidence
 
@@ -74,7 +77,7 @@ A third continuous browser journey passed on the public UI:
 - event coverage: 12 recorded / 12 accounted
 - closure digest: `a02316915f3df45e6d5826883ddf6878a343d8c1022f711671dea9ffcfcf601e`
 
-The later exact-source revisions passed the public health contract with reachable Firestore, Vertex AI, Gemini mode, Gemini 3.5 Flash Lite, and Google ADK TypeScript. No redundant model run was spent after the final redeployment. The three journeys above remain live-model evidence from the earlier Vertex/Firestore runtime; revision `counterstep-00005-nft` establishes exact-source deployment plus health, not a fourth model journey.
+The later exact-source live-evidence revision passed the public health contract with reachable Firestore, Vertex AI, Gemini mode, Gemini 3.5 Flash Lite, and Google ADK TypeScript. No redundant model run was spent after that redeployment. The three journeys above remain live-model evidence from the earlier Vertex/Firestore runtime; revision `counterstep-00005-nft` establishes exact-source deployment plus health, not a fourth model journey. Revision `counterstep-00006-6nd` is the subsequent quota-isolated public fixture and makes no live-model claim.
 
 ## Fail-closed evidence and backend decision
 
@@ -90,9 +93,12 @@ No credits were purchased. Counterstep switched to the in-scope Vertex AI path a
 - Vertex AI spend cap: `$1` monthly, 50/80/100%, status `Configured`; ID `cc3c43c8-41b7-46d0-8230-add48c2feff4`
 - Cloud Run service and revision: min 0, max 1
 - request-based CPU throttling on; startup CPU boost off
-- concurrency 1; no session affinity; 1 vCPU; 512 MiB
+- concurrency 1; no session affinity; 1 vCPU; 512 MiB; 30-second request timeout
 - application admission: 10 runs per UTC day
-- Firestore free-tier database in `us-central1`, PITR disabled
+- current public mode: deterministic fixture with in-memory synthetic state
+- current public Gemini backend: unconfigured; no Gemini/Vertex environment variables or secret
+- runtime identity: no Vertex AI or Firestore data role
+- retained Firestore free-tier database in `us-central1`, PITR disabled; not accessed by the public fixture
 - one current Artifact Registry image retained; obsolete image removed
 - only the final deployment and managed-test source archives retained (2.74 MiB total)
 - old GKE-generated DNS zone, response policy/rules, and internal range deleted after confirming zero clusters, VMs, disks, addresses, forwarding rules, or VPC dependency
@@ -118,13 +124,14 @@ SHA-256 integrity values, in the same order as the files above:
 | `counterstep-cloud-run-ready-2026-08-31.jpg` | `6e2f13deb90b474c23f17271bb54bf25ff4bea1bb1951b72586d889ae06bc7a3` |
 | `counterstep-cloud-run-repaired-2026-08-31.jpg` | `4c0f37d49f13f515da31adfe3e616b3f20088103e40abee1ee3c8c8eaf39614d` |
 
-The Cloud Run console screenshot predates the source-binding redeploy and visibly names revision `counterstep-00003-q7m`; it is historical live-journey proof, not a screenshot of revision `counterstep-00005-nft`. The exact replacement revision is established by the build and service records above. The finished 2:57 submission video includes one continuous public E1 execution at 1x speed, the public health response, the 12-event ledger, deterministic closure, and separate Firestore console evidence. Its public YouTube watch page passed signed-out playback and embedding checks on August 31, 2026; YouTube reported a 177-second duration and English captions.
+The Cloud Run console screenshot predates the source-binding redeploy and visibly names revision `counterstep-00003-q7m`; it is historical live-journey proof, not a screenshot of `counterstep-00005-nft` or the current fixture revision. The exact image and revision transitions are established by the build and service records above. The finished 2:57 submission video includes one continuous public E1 execution at 1x speed, the public health response, the 12-event ledger, deterministic closure, and separate Firestore console evidence. Its public YouTube watch page passed signed-out playback and embedding checks on August 31, 2026; YouTube reported a 177-second duration and English captions.
 
 ## Verification boundary
 
 - Automated local: passed on the deployed source candidate; 38 files, 445 tests, strict TypeScript, lint, Next.js production build, release/privacy audit.
 - Managed Firestore: passed, six retained-write cases in Google Cloud.
-- Exact-source deployed health: passed on Cloud Run revision `counterstep-00005-nft` at 100% traffic.
+- Exact-source live-evidence health: passed on Cloud Run revision `counterstep-00005-nft` before the quota-isolation transition.
+- Current public fixture: revision `counterstep-00006-6nd`, 100% traffic, reusing the exact image with Gemini unconfigured, in-memory state, no Vertex AI/Firestore data role, and a signed-out deterministic E1 pass.
 - Deployed smoke: passed twice with live Gemini 3.5 / Google ADK / Vertex AI and managed Firestore on immediately preceding equivalent revision `counterstep-00003-q7m`; a third continuous public-browser journey also passed there.
 - Deployed visual: ready and repaired states captured at 1280 x 720; Cloud Run, Firestore, and budget console screenshots captured separately.
 - Accessibility: prior local checks remain valid for the tested build; no new real screen-reader pass was performed in this cloud-evidence slice.

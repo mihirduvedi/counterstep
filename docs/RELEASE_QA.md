@@ -9,9 +9,10 @@ Evidence snapshot: August 31, 2026. This ledger separates repository checks, emu
 | Deployed source commit | `5890e2b09049564130428f3d6cc4a768b221b180` | Pushed to `main` before the docs/media follow-up |
 | Hosted CI | [Run `33368011137`](https://github.com/mihirduvedi/counterstep/actions/runs/33368011137) | Passed on the deployed source commit |
 | Cloud Build | `e734fe09-5e29-41cc-a6fd-310ab8f186c3` | `SUCCESS` |
-| Cloud Run revision | `counterstep-00005-nft` | Ready, 100% traffic |
+| Live-evidence Cloud Run revision | `counterstep-00005-nft` | Historical exact-source Vertex/Firestore health proof |
+| Current public Cloud Run revision | `counterstep-00006-6nd` | Ready, 100% traffic; fixture/memory, Gemini unconfigured |
 | Image digest | `sha256:766f1d07da7cb4f853638c93659a995926a7a8eadc6eec56ceb67d19efaa42c4` | Bound to the exact-source build |
-| Public demo | <https://counterstep-27573808078.us-central1.run.app> | HTTP 200 and healthy |
+| Public synthetic demo | <https://counterstep-27573808078.us-central1.run.app> | HTTP 200; fixture/memory; no Gemini or managed Firestore access |
 
 ## Repository gate
 
@@ -71,9 +72,10 @@ Fixture mode proves the visible deterministic journey and shared gate/tool/closu
 
 - Managed Firestore build `0a89c790-f5f7-4e16-95c4-b0362b60b7df` passed six retained production-adapter cases.
 - Two strict smoke journeys and one continuous browser journey passed with Gemini 3.5 Flash Lite through Google ADK on Vertex AI and managed Firestore on the immediately preceding equivalent runtime revision.
-- The exact-source replacement revision `counterstep-00005-nft` passed the public health contract without spending another model request.
-- `GET /api/health` currently returns HTTP 200 with Cloud Run, reachable Firestore, `vertex-ai`, Gemini mode, `gemini-3.5-flash-lite`, and `google-adk-typescript`.
-- The service remains min zero / max one with request-based CPU, concurrency one, and a 10-run UTC daily application cap.
+- Exact-source live-evidence revision `counterstep-00005-nft` passed the Vertex/Firestore health contract without spending another model request.
+- Current public revision `counterstep-00006-6nd` reuses the exact image and returns HTTP 200 with `memory`, `fixture`, `geminiConfigured: false`, and `modelBackend: unconfigured`.
+- A signed-out public E1 fixture run reached `repaired` with two synthetic writes, 12 events, one approved plan, six tool calls, and an exact scenario match; `modelId` was absent.
+- The runtime service account has no Vertex AI or Firestore data role. The service remains min zero / max one with request-based CPU, concurrency one, a 30-second request timeout, and a 10-run UTC daily application cap.
 
 Run IDs, digests, source archives, service controls, and screenshot hashes are in [GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md](GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md).
 
@@ -95,16 +97,11 @@ Completed:
 
 | Target | Result | Action |
 |---|---|---|
-| Public Cloud Run demo | HTTP 200 | Ready |
-| Public health endpoint | HTTP 200 with the expected production contract | Ready |
-| GitHub repository | HTTP 404 while signed out because the repository is private | Before submission, make it public or grant the two required judge accounts access |
-| Hosted CI link | HTTP 404 while signed out for the same private-repository reason | Resolves with repository access |
+| Public Cloud Run demo | HTTP 200; fixture/memory runtime | Ready without model/database quota |
+| Public health endpoint | HTTP 200 with Gemini unconfigured and in-memory repository | Ready |
+| GitHub repository | HTTP 200 while signed out; repository is public | Ready |
+| Hosted CI link | Public with repository visibility | Ready |
 | Demo video | Public YouTube watch page is playable and embeddable signed out; 177-second duration and English captions confirmed; repository fallback and English SRT retained | Ready |
-
-If the repository remains private, grant access to both judge accounts named in
-the [official FAQ](https://allthingsagentichackathon.devpost.com/details/faqs).
-Changing visibility or access is an external permission action and must be
-reviewed immediately before it is done.
 
 ## Accessibility and responsive evidence
 
@@ -118,8 +115,8 @@ Do not describe the product as accessibility-certified. Record the exact browser
 
 - [x] Add the final public YouTube URL to `docs/SUBMISSION.md` after a signed-out playback, embedding, duration, and English-caption check.
 - [ ] Confirm the prepared solo team line (`Mihir Duvedi`) matches the actual Devpost team and eligibility.
-- [ ] Make the repository public, or grant the required private-repository access to both judge accounts.
-- [ ] Verify the repository, CI, live demo, official YouTube/Vimeo video, architecture diagram, and all submission links signed out after the final release.
+- [x] Make the repository public and verify the repository and raw README signed out.
+- [x] Verify the repository, CI, public fixture, YouTube video, architecture diagram, and submission links signed out after the final release.
 - [ ] Capture the final Devpost preview and confirm the **Taskmaster** category.
 - [ ] If claiming optional bonus points, publish the build article and social post publicly, verify both signed out, and add their URLs to Devpost.
 - [ ] Submit before August 31, 2026 at 5:00 PM Pacific Time.

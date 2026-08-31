@@ -6,7 +6,7 @@ The demo starts with an [Agent Receipt](./ORIGIN_AND_REUSE.md) for a synthetic c
 
 This is an action system, not a chat interface. The model can decide which allowed repair is still needed. It cannot grant itself authority or turn its own narration into proof.
 
-**Live demo:** https://counterstep-27573808078.us-central1.run.app
+**Public synthetic demo:** https://counterstep-27573808078.us-central1.run.app — deterministic fixture mode with in-memory state; it cannot invoke Gemini or managed Firestore
 
 **Submission video:** [watch the 2:57 demo](https://youtu.be/8Bh8_6sFMNc)
 
@@ -26,9 +26,9 @@ This is an action system, not a chat interface. The model can decide which allow
 
 ## If you have one minute
 
-1. Open the live demo and read the four predeclared contracts in the **Recovery Test Rack**.
+1. Open the public synthetic demo and read the four predeclared contracts in the **Recovery Test Rack**.
 2. Choose **E4 Stale-state replan**. It is the shortest view of Counterstep's main technical claim: a write becomes stale after inspection, the version check refuses it, both governed resources are re-inspected, and one replacement plan is admitted.
-3. Press **Run Counterstep** once and leave the page open. The live path uses Gemini 3.5 Flash Lite through Google ADK on Vertex AI and persists the run in Firestore.
+3. Press **Run Counterstep** once and leave the page open. The public host runs the clearly labeled deterministic fixture against in-memory synthetic state, so judge traffic cannot consume Gemini or Firestore quota. The submission video and evidence record preserve the completed live Gemini/Google ADK/Vertex AI/Firestore journeys.
 4. At the terminal state, check **Contract matched**, the failed `stale_revision` event, two approved plans, two authorized writes, 20/20 accounted events, and the closure digest.
 
 The selected condition and its expected outcome are visible before execution. Counterstep does not grade itself from UI state; server-owned deterministic code computes the five observed measurements and the closure outcome.
@@ -258,7 +258,8 @@ npm run eval:live
 
 The live evaluator requires Gemini provenance, a Gemini 3.5+ model, Google ADK, inspected governed resources, an authorized two-write event ledger, cited satisfied closure goals, a matching downloaded receipt, and a valid replayed closure digest.
 
-For a deployed Cloud Run service:
+For an explicitly authorized live-evidence Cloud Run revision, not the current
+quota-isolated public fixture:
 
 ```bash
 COUNTERSTEP_BASE_URL=https://your-service-url npm run smoke:cloud
@@ -268,18 +269,18 @@ The cloud smoke check requires Cloud Run identity, reachable Firestore, configur
 
 ## Cloud Run
 
-`Dockerfile` builds the Next.js standalone server and copies only the generated standalone and static outputs; this repository currently has no `public/` asset directory. `cloudbuild.yaml` builds and pushes the image with the dedicated `counterstep-build` identity, then deploys it to Cloud Run with the separate `counterstep-runtime` service identity. The runtime uses its short-lived workload identity for both Firestore and Gemini 3.5 Flash Lite on Vertex AI; no API key is injected into the deployed revision. The locked P0 envelope is request-based CPU with startup boost disabled, both service- and revision-level scaling fixed at zero minimum and one maximum instance, concurrency 1, no session affinity, 1 vCPU, 512 MiB, a 60-second request timeout, a 30-second agent timeout, and a 10-run UTC daily cap.
+`Dockerfile` builds the Next.js standalone server and copies only the generated standalone and static outputs; this repository currently has no `public/` asset directory. `cloudbuild.yaml` builds and pushes the image with the dedicated `counterstep-build` identity, then deploys a safe public fixture with the separate `counterstep-runtime` service identity. The default deployment pins `COUNTERSTEP_AGENT_MODE=fixture` and `COUNTERSTEP_REPOSITORY=memory`; it contains no Gemini, Vertex AI, or Firestore runtime configuration. The runtime identity has no Vertex AI or Firestore data role. The locked public envelope is request-based CPU with startup boost disabled, both service- and revision-level scaling fixed at zero minimum and one maximum instance, concurrency 1, no session affinity, 1 vCPU, 512 MiB, a 30-second request timeout, and a 10-run UTC daily cap.
 
-Before the first deployment, explicitly choose a Google Cloud project, enable billing and the required APIs, create the `counterstep` Artifact Registry repository, default Firestore database, and the isolated `counterstep-build` and `counterstep-runtime` service accounts with least-privilege permissions. Check that boundary without mutation:
+Before deployment, explicitly choose a Google Cloud project, enable billing and the required Cloud Run, Cloud Build, Artifact Registry, and IAM APIs, create the `counterstep` Artifact Registry repository, and create isolated `counterstep-build` and `counterstep-runtime` service accounts with least-privilege permissions. The full read-only preflight below also checks the Vertex AI and Firestore resources retained for reproducing the separate live-evidence path:
 
 ```bash
 COUNTERSTEP_GCP_PROJECT=your-project-id \
 npm run preflight:cloud
 ```
 
-Only after the preflight passes and deployment is freshly authorized, submit `cloudbuild.yaml` from that exact project. The deployed health response must identify `modelBackend` as `vertex-ai`; an API-key-backed local rehearsal is never relabeled as deployed Vertex AI evidence.
+Only after the preflight passes and deployment is freshly authorized, submit `cloudbuild.yaml` from that exact project. The public health response must identify `agentMode` as `fixture`, `repository` as `memory`, `modelBackend` as `unconfigured`, and `geminiConfigured` as `false`. A future live-evidence deployment requires a separate explicit authorization and must never replace fixture evidence or historical Vertex evidence silently.
 
-No deployment is claimed in this repository until `npm run smoke:cloud` passes against the public URL.
+No live-model deployment is claimed from the current public fixture. Historical live-model claims require the retained strict smoke evidence and exact revision identifiers below.
 
 ## Repository map
 
@@ -325,7 +326,8 @@ Confirmed through August 31, 2026:
 - one additional live attempt failed closed before inspection with zero tool calls and zero writes; a later fresh run passed, and the evaluator now reports such deterministic terminal results before requesting a nonexistent receipt;
 - the read-only cloud preflight passes for the confirmed Counterstep project with billing, Vertex AI, Artifact Registry, Cloud Build, Firestore, IAM, Cloud Run, and the isolated service identities ready;
 - exact-source Cloud Build `e734fe09-5e29-41cc-a6fd-310ab8f186c3` succeeded from release commit `5890e2b09049564130428f3d6cc4a768b221b180`;
-- Cloud Run revision `counterstep-00005-nft` serves 100% of traffic at the public URL from image digest `sha256:766f1d07da7cb4f853638c93659a995926a7a8eadc6eec56ceb67d19efaa42c4`, with min 0 / max 1, request-only CPU, and no deployed Gemini API key;
+- exact-source live-evidence revision `counterstep-00005-nft` passed its public Vertex/Firestore health contract from image digest `sha256:766f1d07da7cb4f853638c93659a995926a7a8eadc6eec56ceb67d19efaa42c4`;
+- current public revision `counterstep-00006-6nd` serves the same source-bound image at 100% traffic in `fixture` / `memory` mode with Gemini unconfigured, a 30-second timeout, min 0 / max 1, request-only CPU, and no Vertex AI or Firestore data role on the runtime identity;
 - GitHub Actions run [`33368011137`](https://github.com/mihirduvedi/counterstep/actions/runs/33368011137) passed on the exact release commit;
 - two strict deployed smoke journeys and one continuous browser journey passed on the immediately preceding equivalent Vertex/Firestore revision with Gemini 3.5 Flash Lite through Google ADK; the exact-source replacement revision then passed its public health contract without spending another model run;
 - the closure download fires, reset/repeat succeeds, and the browser console is clean;
@@ -337,6 +339,5 @@ Confirmed through August 31, 2026:
 Not yet claimed:
 
 - a real screen-reader pass for the deployed build;
-- signed-out access to the GitHub repository while it remains private.
 
 The exact managed/deployed IDs, closure digests, cost controls, screenshots, and evidence limits are in [docs/GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md](./docs/GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md). Earlier local evidence remains in [docs/LIVE_GEMINI_EVIDENCE_2026-08-29.md](./docs/LIVE_GEMINI_EVIDENCE_2026-08-29.md), [docs/LOCAL_PRODUCTION_REHEARSAL_EVIDENCE_2026-08-29.md](./docs/LOCAL_PRODUCTION_REHEARSAL_EVIDENCE_2026-08-29.md), [docs/RECOVERY_TEST_RACK_2026-08-30.md](./docs/RECOVERY_TEST_RACK_2026-08-30.md), and [docs/COUNTERSTEP_UI_QA_2026-08-30.md](./docs/COUNTERSTEP_UI_QA_2026-08-30.md).

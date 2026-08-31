@@ -2,17 +2,17 @@
 
 Counterstep is a post-run recovery agent for a completed AI-agent workflow that exceeded authority. It inspects the current state, uses Gemini through Google ADK to choose a bounded plan, admits only deterministic version-pinned actions, and issues a closure receipt from fresh snapshots.
 
-**Live demo:** <https://counterstep-27573808078.us-central1.run.app>
+**Public synthetic demo:** <https://counterstep-27573808078.us-central1.run.app> · deterministic fixture, in-memory state, no Gemini or Firestore quota
 
 **Repository:** <https://github.com/mihirduvedi/counterstep>
 
 **Submission video:** [2:57 public YouTube demo](https://youtu.be/8Bh8_6sFMNc) · [repository fallback](media/counterstep-submission-video.mp4) · [English captions](media/counterstep-submission-video.en.srt)
 
-**Exact release:** `5890e2b09049564130428f3d6cc4a768b221b180` · Cloud Run `counterstep-00005-nft` · [CI `33368011137`](https://github.com/mihirduvedi/counterstep/actions/runs/33368011137)
+**Exact application release:** `5890e2b09049564130428f3d6cc4a768b221b180` · live-evidence revision `counterstep-00005-nft` · safe public revision `counterstep-00006-6nd` · [CI `33368011137`](https://github.com/mihirduvedi/counterstep/actions/runs/33368011137)
 
 ## If you have 30 seconds
 
-1. Open the live demo and scan the four contracts in the **Recovery Test Rack**.
+1. Open the public synthetic demo and scan the four contracts in the **Recovery Test Rack**.
 2. Choose **E4 Stale-state replan**.
 3. Read the injected state and safety claim before running it.
 4. Press **Run Counterstep** once. At the terminal state, look for `Contract matched`, the failed `stale_revision` event, two approved plans, two successful writes, 20/20 accounted events, and a digest-bearing closure.
@@ -27,7 +27,7 @@ E4 is the most compact proof of the architecture. The repository injects one dis
 4. Read the deterministic plan-gate result, 12/12 event accounting, action verdict, final goal statuses, and closure SHA-256.
 5. Switch to **E3 Irreversible delivery**. The declared outcome is `partially_repaired`: Counterstep revokes spreadsheet access but does not claim it recalled a message that was already delivered.
 
-The public service has a small daily admission cap. The [demo video](SUBMISSION.md#links), exact evidence record, and credential-free fixture path remain available if prior judging traffic has consumed it.
+The public service has a small daily admission cap and intentionally runs the deterministic fixture against in-memory synthetic state. Its runtime has no Vertex AI or Firestore data role. The [demo video](SUBMISSION.md#links) and exact evidence record preserve the completed live Gemini/ADK/Vertex/Firestore proof.
 
 ## What to look for
 
@@ -67,7 +67,7 @@ exact Agent Receipt
 |---|---|
 | Innovation and Operational Utility | One start action repairs reversible consequences of a completed agent overstep. E2 proves restraint, E3 stops at an irreversible boundary, and E4 handles stale state without overwriting it. |
 | Architectural Discipline and Tech Stack | Gemini 3.5 Flash Lite through Google ADK on Vertex AI; deterministic authority and closure; strict Zod boundaries; transactional Firestore persistence; exact versions and idempotency; fail-closed execution; separate workload identities. |
-| Demo and Production Readiness | Public Cloud Run service, managed Firestore evidence, exact-source Cloud Build and CI, a four-case test rack, a README architecture diagram, fixture and emulator reproduction paths, and a release/privacy audit. |
+| Demo and Production Readiness | Public quota-isolated Cloud Run fixture, separately retained live Gemini/ADK and managed Firestore evidence, exact-source Cloud Build and CI, a four-case test rack, a README architecture diagram, local reproduction paths, and a release/privacy audit. |
 
 ## Reproduce it locally
 
@@ -101,7 +101,7 @@ npm run test:firestore
 - **Firestore emulator:** eight production-repository cases passed locally. This is not managed-cloud evidence.
 - **Managed Firestore:** six retained production-adapter cases passed in Cloud Build.
 - **Live Gemini / Google ADK:** three Vertex-backed runs passed with six bounded tool calls, two authorized writes, 12 accounted events, and digest-valid closures.
-- **Exact-source deployment:** build `e734fe09-5e29-41cc-a6fd-310ab8f186c3`, revision `counterstep-00005-nft`, and CI `33368011137` are bound to release commit `5890e2b09049564130428f3d6cc4a768b221b180`. The replacement revision passed its health contract; the three model journeys were recorded on the earlier equivalent Vertex/Firestore runtime revision.
+- **Exact-source deployment:** build `e734fe09-5e29-41cc-a6fd-310ab8f186c3`, live-evidence revision `counterstep-00005-nft`, and CI `33368011137` are bound to release commit `5890e2b09049564130428f3d6cc4a768b221b180`. Current public revision `counterstep-00006-6nd` reuses that exact image in fixture/memory mode with Gemini unconfigured; the three model journeys remain separately recorded on the earlier Vertex/Firestore runtime.
 - **Visual/accessibility:** responsive, reduced-motion, forced-colors, semantic, focus, and target-size checks are recorded separately. No claim of accessibility certification is made.
 - **Synthetic scope:** no real spreadsheet, email, customer record, or private trace is used.
 

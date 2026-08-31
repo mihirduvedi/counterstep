@@ -21,13 +21,13 @@ steps:
       - --platform=managed
       - --allow-unauthenticated
       - --service-account=${_SERVICE_ACCOUNT}@$PROJECT_ID.iam.gserviceaccount.com
-      - --set-env-vars=COUNTERSTEP_AGENT_MODE=gemini,COUNTERSTEP_REPOSITORY=firestore,COUNTERSTEP_GEMINI_MODEL=gemini-3.5-flash-lite,COUNTERSTEP_AGENT_TIMEOUT_MS=30000,COUNTERSTEP_MAX_DAILY_RUNS=10,GOOGLE_GENAI_USE_ENTERPRISE=true,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=global,FIRESTORE_DATABASE_ID=(default)
+      - --set-env-vars=COUNTERSTEP_AGENT_MODE=fixture,COUNTERSTEP_REPOSITORY=memory,COUNTERSTEP_MAX_DAILY_RUNS=10
       - --remove-secrets=GEMINI_API_KEY
       - --memory=512Mi
       - --cpu=1
       - --cpu-throttling
       - --no-cpu-boost
-      - --timeout=60
+      - --timeout=30
       - --concurrency=1
       - --no-session-affinity
       - --min=0
