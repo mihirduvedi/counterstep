@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    await parseJsonBody(request, ResetDemoRequestSchema);
-    const view = await getRuntime().service.resetDemo();
+    const input = await parseJsonBody(request, ResetDemoRequestSchema);
+    const view = await getRuntime().service.resetDemo(input.scenarioId);
     return jsonResponse(view, 201);
   } catch (error) {
     return errorResponse(error);

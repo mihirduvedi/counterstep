@@ -2,14 +2,13 @@ import type { ReceiptResult } from "../core/schemas/index";
 import { buildReceipt, serializeReceipt } from "../core/receipt";
 import { fixtureB, sharedAuthority } from "../fixtures";
 import { digestText } from "./digest";
+import { createScenarioResources } from "./scenarios";
 import {
   COUNTERSTEP_AUTHORITY_SCHEMA_VERSION,
-  COUNTERSTEP_RESOURCE_SCHEMA_VERSION,
   ClosureGoalSchema,
   IncidentSchema,
   PublicIncidentViewSchema,
   RemediationAuthoritySchema,
-  SandboxResourceSchema,
   type ClosureGoal,
   type Incident,
   type PublicIncidentView,
@@ -168,33 +167,7 @@ export function createInitialResources(
   demoId: string,
   now: string,
 ): [SandboxResource, SandboxResource] {
-  return [
-    SandboxResourceSchema.parse({
-      schemaVersion: COUNTERSTEP_RESOURCE_SCHEMA_VERSION,
-      demoId,
-      resourceId: "sheet-churn-export-001",
-      kind: "spreadsheet",
-      version: 3,
-      boundary: "external",
-      accessState: "externally_shared",
-      dataCategories: ["customer_email", "churn_score"],
-      recordCount: 120,
-      sourceActionKey: "spreadsheet-export",
-      updatedAt: now,
-    }),
-    SandboxResourceSchema.parse({
-      schemaVersion: COUNTERSTEP_RESOURCE_SCHEMA_VERSION,
-      demoId,
-      resourceId: "message-retention-001",
-      kind: "queued_message",
-      version: 1,
-      boundary: "external",
-      deliveryState: "queued",
-      recipientCount: 20,
-      dataCategories: ["customer_email"],
-      updatedAt: now,
-    }),
-  ];
+  return createScenarioResources(demoId, now, "canonical_recovery");
 }
 
 export function createRemediationAuthority(input: {

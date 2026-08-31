@@ -6,6 +6,7 @@ import { digestObject, digestText } from "./digest";
 import type {
   AtomicWriteRequest,
   CounterstepRepository,
+  StaleScenarioMutationRequest,
 } from "./repository";
 import {
   ActionEventSchema,
@@ -21,6 +22,7 @@ import {
   RemediationRunSchema,
   RunExecutionAdmissionSchema,
   SandboxResourceSchema,
+  ScenarioMutationResultSchema,
   type ActionEvent,
   type AtomicWriteResult,
   type ClosureReceipt,
@@ -136,6 +138,74 @@ export class FirestoreCounterstepRepository
     return parseOptional(snapshot.exists, snapshot.data(), (value) =>
       SandboxResourceSchema.parse(value),
     );
+  }
+
+  async applyStaleScenarioMutation(
+    request: StaleScenarioMutationRequest,
+  ) {
+    return this.db.runTransaction(async (transaction) => {
+      const demoRef = this.demoRef(request.demoId);
+      const resourceRef = this.resourceRef(
+        request.demoId,
+        request.resourceId,
+      );
+      const [demoSnapshot, resourceSnapshot] = await Promise.all([
+        transaction.get(demoRef),
+        transaction.get(resourceRef),
+      ]);
+      if (!demoSnapshot.exists) {
+        return ScenarioMutationResultSchema.parse({
+          status: "not_applicable",
+        });
+      }
+      const demo = DemoRecordSchema.parse(demoSnapshot.data());
+      const resource = parseOptional(
+        resourceSnapshot.exists,
+        resourceSnapshot.data(),
+        (value) => SandboxResourceSchema.parse(value),
+      );
+      if (
+        demo.scenarioId !== "stale_replan" ||
+        request.resourceId !== "sheet-churn-export-001"
+      ) {
+        return ScenarioMutationResultSchema.parse({
+          status: "not_applicable",
+        });
+      }
+      if (demo.scenarioMutationAppliedAt) {
+        return ScenarioMutationResultSchema.parse({
+          status: "already_applied",
+          resource,
+        });
+      }
+      if (
+        !resource ||
+        resource.kind !== "spreadsheet" ||
+        resource.version !== request.expectedVersion
+      ) {
+        return ScenarioMutationResultSchema.parse({
+          status: "not_applicable",
+        });
+      }
+      const nextResource = SandboxResourceSchema.parse({
+        ...resource,
+        version: resource.version + 1,
+        updatedAt: request.timestamp,
+      });
+      transaction.set(resourceRef, nextResource, { merge: false });
+      transaction.set(
+        demoRef,
+        DemoRecordSchema.parse({
+          ...demo,
+          scenarioMutationAppliedAt: request.timestamp,
+        }),
+        { merge: false },
+      );
+      return ScenarioMutationResultSchema.parse({
+        status: "applied",
+        resource: nextResource,
+      });
+    });
   }
 
   async createRun(

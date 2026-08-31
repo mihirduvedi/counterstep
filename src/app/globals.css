@@ -134,7 +134,7 @@ code {
 .cs-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.72fr);
-  min-height: 410px;
+  min-height: 360px;
   border-bottom: 1px solid var(--ink);
 }
 
@@ -142,7 +142,7 @@ code {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: clamp(36px, 6vw, 88px) clamp(24px, 5vw, 72px) 46px;
+  padding: clamp(30px, 5vw, 70px) clamp(24px, 5vw, 72px) 36px;
 }
 
 .cs-eyebrow {
@@ -154,7 +154,7 @@ code {
   max-width: 950px;
   margin: 0;
   font-family: var(--serif);
-  font-size: clamp(3.3rem, 7.4vw, 7.6rem);
+  font-size: clamp(3.3rem, 6vw, 6.2rem);
   font-weight: 400;
   letter-spacing: -0.065em;
   line-height: 0.88;
@@ -215,6 +215,136 @@ code {
   font-size: 1.55rem;
 }
 
+.cs-scenario-rack {
+  border-bottom: 1px solid var(--ink);
+  background: var(--paper-deep);
+}
+
+.cs-scenario-rack > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 20px 16px;
+}
+
+.cs-scenario-rack > header p,
+.cs-scenario-brief span,
+.cs-contract-lead > span {
+  margin: 0;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cs-scenario-rack h2 {
+  margin: 4px 0 0;
+  font-family: var(--serif);
+  font-size: clamp(1.45rem, 2.2vw, 2.1rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+}
+
+.cs-scenario-rack > header > span {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.cs-scenario-rack fieldset {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--ink);
+}
+
+.cs-scenario-choice {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 106px;
+  align-content: center;
+  gap: 4px;
+  padding: 14px 16px 14px 52px;
+  border: 0;
+  border-right: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.cs-scenario-choice:last-child {
+  border-right: 0;
+}
+
+.cs-scenario-choice:hover:not(:disabled) {
+  background: rgba(215, 255, 63, 0.28);
+}
+
+.cs-scenario-choice.is-selected {
+  background: var(--lime);
+}
+
+.cs-scenario-choice > span {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid currentColor;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.cs-scenario-choice strong {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  font-weight: 400;
+}
+
+.cs-scenario-choice small {
+  color: var(--graphite);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+}
+
+.cs-scenario-brief {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) minmax(220px, 0.72fr);
+  border-bottom: 1px solid var(--ink);
+  background: var(--paper);
+}
+
+.cs-scenario-brief > * {
+  margin: 0;
+  padding: 14px 18px;
+}
+
+.cs-scenario-brief > * + * {
+  border-left: 1px solid var(--rule);
+}
+
+.cs-scenario-brief p {
+  margin: 5px 0 0;
+  font-size: 0.78rem;
+}
+
+.cs-scenario-brief small {
+  align-self: stretch;
+  color: var(--graphite);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+}
+
 .cs-command {
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -270,6 +400,91 @@ code {
 
 .cs-secondary:hover:not(:disabled) {
   background: #34342e;
+}
+
+.cs-contract {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
+  border-bottom: 1px solid var(--ink);
+  background: var(--paper);
+}
+
+.cs-contract-matched {
+  background: var(--lime);
+}
+
+.cs-contract-mismatched {
+  background: var(--amber);
+}
+
+.cs-contract-lead {
+  padding: 17px 20px;
+  border-right: 1px solid var(--ink);
+}
+
+.cs-contract-lead h2 {
+  margin: 4px 0;
+  font-family: var(--serif);
+  font-size: clamp(1.5rem, 2.3vw, 2.2rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+}
+
+.cs-contract-lead p {
+  max-width: 560px;
+  margin: 0;
+  color: var(--graphite);
+  font-size: 0.74rem;
+}
+
+.cs-contract dl {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  min-width: 0;
+  margin: 0;
+}
+
+.cs-contract dl div {
+  min-width: 0;
+  padding: 17px 12px;
+}
+
+.cs-contract dl div + div {
+  border-left: 1px solid var(--rule);
+}
+
+.cs-contract dt {
+  font-size: 0.61rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cs-contract dd {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  margin: 11px 0 0;
+}
+
+.cs-contract dd span,
+.cs-contract dd strong {
+  overflow-wrap: anywhere;
+}
+
+.cs-contract dd span {
+  color: var(--graphite);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.cs-contract dd strong {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 400;
+  text-transform: capitalize;
 }
 
 .cs-error {
@@ -1019,6 +1234,37 @@ code {
     border-bottom: 1px solid #55544e;
   }
 
+  .cs-scenario-rack fieldset {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cs-scenario-choice:nth-child(2) {
+    border-right: 0;
+  }
+
+  .cs-scenario-choice:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .cs-scenario-brief {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cs-scenario-brief > small {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--rule);
+    border-left: 0;
+  }
+
+  .cs-contract {
+    grid-template-columns: 1fr;
+  }
+
+  .cs-contract-lead {
+    border-right: 0;
+    border-bottom: 1px solid var(--ink);
+  }
+
   .cs-run-result {
     grid-template-columns: minmax(0, 1fr) minmax(300px, 0.8fr);
   }
@@ -1105,6 +1351,51 @@ code {
 
   .cs-command {
     grid-template-columns: 1fr;
+  }
+
+  .cs-scenario-rack > header {
+    align-items: start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cs-scenario-choice {
+    min-height: 96px;
+    padding: 12px 10px 12px 43px;
+  }
+
+  .cs-scenario-choice > span {
+    top: 12px;
+    left: 10px;
+  }
+
+  .cs-scenario-brief {
+    grid-template-columns: 1fr;
+  }
+
+  .cs-scenario-brief > * + * {
+    border-top: 1px solid var(--rule);
+    border-left: 0;
+  }
+
+  .cs-scenario-brief > small {
+    grid-column: 1;
+  }
+
+  .cs-contract dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cs-contract dl div + div {
+    border-left: 0;
+  }
+
+  .cs-contract dl div:nth-child(even) {
+    border-left: 1px solid var(--rule);
+  }
+
+  .cs-contract dl div:nth-child(n + 3) {
+    border-top: 1px solid var(--rule);
   }
 
   .cs-command > div,

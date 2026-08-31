@@ -321,6 +321,37 @@ describe("FirestoreCounterstepRepository against the local emulator", () => {
     30_000,
   );
 
+  it("runs the disclosed stale scenario through one atomic Firestore mutation", async () => {
+    const repository = new FirestoreCounterstepRepository(db);
+    const service = harness(repository, "scenario-stale");
+    const demo = await service.resetDemo("stale_replan");
+    const run = await service.createRun({
+      demoId: demo.demo.demoId,
+      sourceReceiptDigest: demo.demo.sourceReceiptDigest,
+      generationSource: "deterministic_fixture",
+    });
+
+    const view = await service.runFixture(run.runId);
+
+    expect(view.run).toMatchObject({
+      status: "repaired",
+      writeCount: 2,
+      replanCount: 1,
+      toolCallCount: 10,
+    });
+    expect(view.approvedPlans).toHaveLength(2);
+    expect(view.events.filter((event) => event.resultCode === "stale_revision"))
+      .toHaveLength(1);
+    expect(view.scenarioAssessment).toMatchObject({
+      scenarioId: "stale_replan",
+      status: "matched",
+    });
+    await expect(repository.getDemo(demo.demo.demoId)).resolves.toMatchObject({
+      scenarioId: "stale_replan",
+      scenarioMutationAppliedAt: expect.any(String),
+    });
+  });
+
   it("re-inspects, replans once, and preserves both approved plans after stale state", async () => {
     const repository = new StaleInjectingFirestoreRepository(
       db,

@@ -20,6 +20,14 @@ export const COUNTERSTEP_DAILY_RUN_COUNTER_SCHEMA_VERSION =
 export const CLOSURE_QUALIFIER =
   "Based on the supplied original trace, remediation authority, recorded tool results, and final sandbox snapshots." as const;
 
+export const DemoScenarioIdSchema = z.enum([
+  "canonical_recovery",
+  "already_safe",
+  "delivered_boundary",
+  "stale_replan",
+]);
+export type DemoScenarioId = z.infer<typeof DemoScenarioIdSchema>;
+
 const StrictIdSchema = z
   .string()
   .min(3)
@@ -630,13 +638,120 @@ export type ClosureReceipt = z.infer<typeof ClosureReceiptSchema>;
 export const DemoRecordSchema = z
   .object({
     demoId: StrictIdSchema,
+    scenarioId: DemoScenarioIdSchema.default("canonical_recovery"),
     sourceReceiptDigest: DigestSchema,
     createdAt: Rfc3339Schema,
     resourceIds: z.array(StrictIdSchema).length(2),
     latestRunId: StrictIdSchema.optional(),
+    scenarioMutationAppliedAt: Rfc3339Schema.optional(),
   })
   .strict();
 export type DemoRecord = z.infer<typeof DemoRecordSchema>;
+
+export const ScenarioExpectedResultSchema = z
+  .object({
+    outcome: z.enum([
+      "repaired",
+      "partially_repaired",
+      "blocked",
+      "unable_to_verify",
+      "failed",
+    ]),
+    writes: NonNegativeIntegerSchema.max(2),
+    replans: NonNegativeIntegerSchema.max(1),
+    toolCalls: NonNegativeIntegerSchema.max(12),
+    approvedPlans: NonNegativeIntegerSchema.max(2),
+  })
+  .strict();
+export type ScenarioExpectedResult = z.infer<
+  typeof ScenarioExpectedResultSchema
+>;
+
+export const PublicDemoScenarioSchema = z
+  .object({
+    scenarioId: DemoScenarioIdSchema,
+    code: z.string().min(2).max(8),
+    label: z.string().min(1).max(80),
+    summary: z.string().min(1).max(300),
+    setup: z.string().min(1).max(300),
+    safetyClaim: z.string().min(1).max(300),
+    disclosure: z.string().min(1).max(300),
+    expected: ScenarioExpectedResultSchema,
+  })
+  .strict();
+export type PublicDemoScenario = z.infer<typeof PublicDemoScenarioSchema>;
+
+export const ScenarioCatalogResponseSchema = z
+  .object({
+    scenarios: z.array(PublicDemoScenarioSchema).length(4),
+  })
+  .strict();
+export type ScenarioCatalogResponse = z.infer<
+  typeof ScenarioCatalogResponseSchema
+>;
+
+export const ScenarioObservedResultSchema = z
+  .object({
+    outcome: z.enum([
+      "repaired",
+      "partially_repaired",
+      "blocked",
+      "unable_to_verify",
+      "failed",
+    ]),
+    writes: NonNegativeIntegerSchema,
+    replans: NonNegativeIntegerSchema,
+    toolCalls: NonNegativeIntegerSchema,
+    approvedPlans: NonNegativeIntegerSchema,
+  })
+  .strict();
+export type ScenarioObservedResult = z.infer<
+  typeof ScenarioObservedResultSchema
+>;
+
+export const ScenarioAssessmentSchema = z
+  .object({
+    scenarioId: DemoScenarioIdSchema,
+    status: z.enum(["awaiting_terminal", "matched", "mismatched"]),
+    expected: ScenarioExpectedResultSchema,
+    observed: ScenarioObservedResultSchema.optional(),
+    mismatches: z.array(z.string().min(1).max(160)).max(5),
+  })
+  .strict()
+  .superRefine((value, context) => {
+    if (value.status === "awaiting_terminal" && value.observed) {
+      context.addIssue({
+        code: "custom",
+        path: ["observed"],
+        message: "An awaiting scenario assessment cannot claim observed results.",
+      });
+    }
+    if (value.status !== "awaiting_terminal" && !value.observed) {
+      context.addIssue({
+        code: "custom",
+        path: ["observed"],
+        message: "A terminal scenario assessment requires observed results.",
+      });
+    }
+    if (value.status === "matched" && value.mismatches.length > 0) {
+      context.addIssue({
+        code: "custom",
+        path: ["mismatches"],
+        message: "A matched scenario assessment cannot contain mismatches.",
+      });
+    }
+  });
+export type ScenarioAssessment = z.infer<typeof ScenarioAssessmentSchema>;
+
+export const ScenarioMutationResultSchema = z
+  .object({
+    status: z.enum(["applied", "already_applied", "not_applicable"]),
+    resource: SandboxResourceSchema.optional(),
+  })
+  .strict();
+export type ScenarioMutationResult = z.infer<
+  typeof ScenarioMutationResultSchema
+>;
 
 export const PublicIncidentViewSchema = z
   .object({
@@ -661,6 +776,7 @@ export type PublicIncidentView = z.infer<typeof PublicIncidentViewSchema>;
 export const PublicDemoViewSchema = z
   .object({
     demo: DemoRecordSchema,
+    scenario: PublicDemoScenarioSchema,
     incident: PublicIncidentViewSchema,
     resources: z.array(SandboxResourceSchema).length(2),
   })
@@ -677,11 +793,17 @@ export const PublicRunViewSchema = z
     events: z.array(ActionEventSchema).max(100),
     currentResources: z.array(SandboxResourceSchema).max(8),
     closure: ClosureReceiptSchema.optional(),
+    scenarioAssessment: ScenarioAssessmentSchema,
   })
   .strict();
 export type PublicRunView = z.infer<typeof PublicRunViewSchema>;
 
-export const ResetDemoRequestSchema = z.object({}).strict();
+export const EmptyJsonRequestSchema = z.object({}).strict();
+export const ResetDemoRequestSchema = z
+  .object({
+    scenarioId: DemoScenarioIdSchema.default("canonical_recovery"),
+  })
+  .strict();
 export const StartRunRequestSchema = z
   .object({
     demoId: StrictIdSchema,

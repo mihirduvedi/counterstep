@@ -4,7 +4,7 @@ import {
   getRunExecutionAdmission,
   getRuntime,
 } from "@/counterstep/runtime";
-import { ResetDemoRequestSchema } from "@/counterstep/schemas";
+import { EmptyJsonRequestSchema } from "@/counterstep/schemas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export async function POST(
   context: { params: Promise<{ runId: string }> },
 ): Promise<Response> {
   try {
-    await parseJsonBody(request, ResetDemoRequestSchema);
+    await parseJsonBody(request, EmptyJsonRequestSchema);
     const { runId } = await context.params;
     const current = await getRuntime().service.getRunView(runId);
     if (!current) throw new ApiError(404, "run_not_found", "Run not found.");

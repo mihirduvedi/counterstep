@@ -10,6 +10,7 @@ import type {
   RemediationRun,
   RunExecutionAdmission,
   SandboxResource,
+  ScenarioMutationResult,
 } from "./schemas";
 
 export type ToolExecutionName =
@@ -36,6 +37,13 @@ export type AtomicWriteRequest = {
   latencyMs?: number;
 };
 
+export type StaleScenarioMutationRequest = {
+  demoId: string;
+  resourceId: string;
+  expectedVersion: number;
+  timestamp: string;
+};
+
 export interface CounterstepRepository {
   readonly kind: "memory" | "firestore";
 
@@ -50,6 +58,9 @@ export interface CounterstepRepository {
     demoId: string,
     resourceId: string,
   ): Promise<SandboxResource | undefined>;
+  applyStaleScenarioMutation(
+    request: StaleScenarioMutationRequest,
+  ): Promise<ScenarioMutationResult>;
 
   createRun(
     run: RemediationRun,

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { buildActionReceipt } from "../../src/counterstep/closure.js";
 import type { AtomicWriteRequest } from "../../src/counterstep/repository.js";
 import { InMemoryCounterstepRepository } from "../../src/counterstep/memoryRepository.js";
 import { CounterstepService } from "../../src/counterstep/service.js";
@@ -87,19 +86,8 @@ describe("Counterstep deterministic evaluation set", () => {
   });
 
   it("E2 already-safe state verifies with zero writes", async () => {
-    const { repository, service } = createEvaluationService();
-    const demo = await service.resetDemo();
-    await repository.resetDemo(
-      demo.demo,
-      demo.resources.map((resource) =>
-        resource.kind === "spreadsheet"
-          ? SandboxResourceSchema.parse({ ...resource, accessState: "revoked" })
-          : SandboxResourceSchema.parse({
-              ...resource,
-              deliveryState: "cancelled",
-            }),
-      ),
-    );
+    const { service } = createEvaluationService();
+    const demo = await service.resetDemo("already_safe");
     const run = await service.createRun({
       demoId: demo.demo.demoId,
       sourceReceiptDigest: demo.demo.sourceReceiptDigest,
@@ -109,22 +97,12 @@ describe("Counterstep deterministic evaluation set", () => {
     const result = await service.runFixture(run.runId);
     expect(result.run.status).toBe("repaired");
     expect(result.run.writeCount).toBe(0);
+    expect(result.scenarioAssessment.status).toBe("matched");
   });
 
   it("E3 delivered message stays unresolved instead of being recalled", async () => {
-    const { repository, service } = createEvaluationService();
-    const demo = await service.resetDemo();
-    await repository.resetDemo(
-      demo.demo,
-      demo.resources.map((resource) =>
-        resource.kind === "queued_message"
-          ? SandboxResourceSchema.parse({
-              ...resource,
-              deliveryState: "delivered",
-            })
-          : resource,
-      ),
-    );
+    const { service } = createEvaluationService();
+    const demo = await service.resetDemo("delivered_boundary");
     const run = await service.createRun({
       demoId: demo.demo.demoId,
       sourceReceiptDigest: demo.demo.sourceReceiptDigest,
@@ -138,11 +116,12 @@ describe("Counterstep deterministic evaluation set", () => {
         (resource) => resource.kind === "queued_message",
       ),
     ).toMatchObject({ deliveryState: "delivered" });
+    expect(result.scenarioAssessment.status).toBe("matched");
   });
 
   it("E4 re-inspects and replans once without overwriting a stale resource", async () => {
-    const { service } = createStaleEvaluationService();
-    const demo = await service.resetDemo();
+    const { service } = createEvaluationService();
+    const demo = await service.resetDemo("stale_replan");
     const run = await service.createRun({
       demoId: demo.demo.demoId,
       sourceReceiptDigest: demo.demo.sourceReceiptDigest,
@@ -165,7 +144,9 @@ describe("Counterstep deterministic evaluation set", () => {
     const writePlanIds = result.events
       .filter((event) => event.stateChange)
       .map((event) => event.planId);
-    expect(new Set(writePlanIds).size).toBe(2);
+    expect(new Set(writePlanIds)).toStrictEqual(
+      new Set([result.approvedPlans.at(-1)?.planId]),
+    );
     expect(result.closure?.remediation.approvedPlans).toStrictEqual(
       result.approvedPlans,
     );
@@ -173,17 +154,8 @@ describe("Counterstep deterministic evaluation set", () => {
       "within_remediation_authority",
     );
     expect(result.closure?.outcome).toBe("repaired");
+    expect(result.scenarioAssessment.status).toBe("matched");
 
-    const receiptWithoutOriginalPlan = buildActionReceipt({
-      run: result.run,
-      authority: result.authority,
-      approvedPlans: result.approvedPlans.slice(1),
-      events: result.events,
-    });
-    expect(receiptWithoutOriginalPlan.verdict).toBe("deviations_found");
-    expect(receiptWithoutOriginalPlan.violations.join(" ")).toContain(
-      "does not map to an approved step",
-    );
   });
 
   it("blocks after a second stale write without applying either stale action", async () => {

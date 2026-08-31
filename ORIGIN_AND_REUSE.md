@@ -40,6 +40,9 @@ The following functionality is new for this submission:
 - server-bound ADK run authority with application-derived idempotency keys;
 - deterministic plan, authority, version, transition, citation, budget, and idempotency gates;
 - bounded stale-version recovery with fresh re-inspection, one replacement plan, and immutable approved-plan history;
+- a judge-visible Recovery Test Rack with four PRD-defined synthetic conditions,
+  predeclared deterministic result contracts, and an atomic idempotent stale-state
+  injection that is disclosed and excluded from remediation write evidence;
 - Firestore-backed sandbox/run/event/receipt persistence;
 - atomic UTC daily execution admission shared by memory and Firestore;
 - credential-free Firestore emulator integration coverage for reset, concurrency,
@@ -65,11 +68,11 @@ Creating a new repository does not reset the age of reused code. Submission mate
 | Evidence layer | Current status | What it does and does not establish |
 |---|---|---|
 | Automated local | Passed | Lint, strict TypeScript, deterministic tests, Next.js production build, and release audit pass locally. |
-| Firestore emulator | Passed locally | Seven tests execute the production Firestore repository against the official local emulator, including concurrent idempotency, atomic daily admission, and stale transactions. This does not establish managed Firestore behavior. |
+| Firestore emulator | Passed locally | Eight production-repository cases pass, including the Recovery Test Rack's atomic stale-scenario mutation, concurrent idempotency, atomic daily admission, and stale transactions. The first expanded run hit an emulator transaction-lock timeout in the pre-existing concurrent-idempotency case; that case then passed alone and the complete eight-case suite passed on a clean rerun. This does not establish managed Firestore behavior. |
 | Local production rehearsal | Prior complete pass retained; fresh reruns failed closed | A prior exact production-container rehearsal passed twice around an application restart and reproduced the first persisted run and closure from the official emulator. Two fresh pre-release attempts built and started the current image but Gemini stopped before inspection; both failed closed with zero writes and emitted no passing manifest. Managed Firestore, Cloud Run, and deployed claims remain `false`. |
 | Google ADK / Gemini live | Prior passes retained; latest two attempts failed closed | Recorded prior `gemini-3.5-flash-lite` runs executed through Google ADK with six bounded tool calls, two authorized writes, 12 accounted events, an in-authority action receipt, and a digest-valid closure. The latest two fresh attempts stopped before inspection with zero writes. This proves safe current failure behavior, not a fresh passing managed or deployed result. |
 | Managed Firestore | Harness ready; transaction run not run | The opt-in six-case production-adapter harness compiles, eight configuration-guard tests pass, and its unconfigured invocation stops before Firestore client construction. No Google Cloud project mutation or managed-database transaction is claimed. |
 | Cloud readiness | Local image passed; project blocked without mutation | The production container builds and starts locally. Read-only preflight validates the exact project, billing, APIs, Firestore, Artifact Registry, dedicated service identity, pinned secret version, and Cloud Run presence. The currently selected but unconfirmed project is not ready. |
 | Cloud Run / deployed | Not run | The locked one-instance deployment configuration and two-run evidence gate exist, but there is no deployment or public smoke claim. |
-| Visual | Passed locally for the tested judge states | Ready, loading, repaired, fail-closed, and offline states passed at 360, 768, and 1440 CSS pixels; the 720-pixel 200% zoom equivalent also passed without horizontal overflow. Stale replacement-plan rendering remains untested in this pass. |
-| Accessibility | Partially checked locally | Static UI scan, accessibility-tree inspection, named live/phase status, text event states, target sizing, contrast, 200% zoom equivalent, reduced motion, and forced colors passed for the tested path. A genuine keyboard-only run and real screen-reader check remain manual and unclaimed. |
+| Visual | Passed locally for the tested judge states | Ready, loading, repaired, fail-closed, offline, stale replacement-plan, and irreversible partial-repair states have rendered locally. A fresh responsive matrix for the new Recovery Test Rack remains pending. |
+| Accessibility | Partially checked locally | The new scenario group has a programmatic legend, pressed state, disabled execution state, 44-pixel-or-larger targets, a polite selected-scenario announcement, and semantic expected-versus-observed terms. A fresh keyboard-only run, responsive matrix, and real screen-reader check remain manual and unclaimed. |

@@ -7,8 +7,11 @@ import {
   HealthResponseSchema,
   PublicDemoViewSchema,
   PublicRunViewSchema,
+  ScenarioCatalogResponseSchema,
   type HealthResponse,
   type ActionEvent,
+  type DemoScenarioId,
+  type PublicDemoScenario,
   type PublicDemoView,
   type PublicRunView,
   type SandboxResource,
@@ -123,13 +126,16 @@ export function CounterstepApp() {
   const [demo, setDemo] = useState<PublicDemoView | null>(null);
   const [run, setRun] = useState<PublicRunView | null>(null);
   const [health, setHealth] = useState<HealthResponse | null>(null);
+  const [scenarios, setScenarios] = useState<PublicDemoScenario[]>([]);
+  const [selectedScenarioId, setSelectedScenarioId] =
+    useState<DemoScenarioId>("canonical_recovery");
   const [resetting, setResetting] = useState(true);
   const [executing, setExecuting] = useState(false);
   const [error, setError] = useState("");
   const activeRunId = run?.run.runId;
   const activeRunStatus = run?.run.status;
 
-  const resetDemo = useCallback(async () => {
+  const resetDemo = useCallback(async (scenarioId: DemoScenarioId) => {
     setResetting(true);
     setError("");
     try {
@@ -138,10 +144,11 @@ export function CounterstepApp() {
         PublicDemoViewSchema,
         {
           method: "POST",
-          body: "{}",
+          body: JSON.stringify({ scenarioId }),
         },
       );
       setDemo(next);
+      setSelectedScenarioId(next.scenario.scenarioId);
       setRun(null);
     } catch (cause) {
       setError(errorMessage(cause, "The demo could not be reset."));
@@ -153,12 +160,13 @@ export function CounterstepApp() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const [demoResult, healthResult] = await Promise.allSettled([
+      const [demoResult, healthResult, scenarioResult] = await Promise.allSettled([
         requestJson("/api/demo/reset", PublicDemoViewSchema, {
           method: "POST",
-          body: "{}",
+          body: JSON.stringify({ scenarioId: "canonical_recovery" }),
         }),
         requestJson("/api/health", HealthResponseSchema, undefined, true),
+        requestJson("/api/demo/scenarios", ScenarioCatalogResponseSchema),
       ]);
       if (!cancelled) {
         if (demoResult.status === "fulfilled") {
@@ -170,6 +178,17 @@ export function CounterstepApp() {
         }
         if (healthResult.status === "fulfilled") {
           setHealth(healthResult.value);
+        }
+        if (scenarioResult.status === "fulfilled") {
+          setScenarios(scenarioResult.value.scenarios);
+        } else {
+          setError((current) =>
+            current ||
+            errorMessage(
+              scenarioResult.reason,
+              "The recovery scenarios could not be loaded.",
+            ),
+          );
         }
         setResetting(false);
       }
@@ -210,14 +229,27 @@ export function CounterstepApp() {
     setExecuting(true);
     setError("");
     try {
+      let runDemo = demo;
+      if (run && TERMINAL.has(run.run.status)) {
+        runDemo = await requestJson(
+          "/api/demo/reset",
+          PublicDemoViewSchema,
+          {
+            method: "POST",
+            body: JSON.stringify({ scenarioId: selectedScenarioId }),
+          },
+        );
+        setDemo(runDemo);
+        setRun(null);
+      }
       const created = await requestJson(
         "/api/remediation-runs",
         PublicRunViewSchema,
         {
           method: "POST",
           body: JSON.stringify({
-            demoId: demo.demo.demoId,
-            sourceReceiptDigest: demo.demo.sourceReceiptDigest,
+            demoId: runDemo.demo.demoId,
+            sourceReceiptDigest: runDemo.demo.sourceReceiptDigest,
           }),
         },
       );
@@ -233,6 +265,12 @@ export function CounterstepApp() {
     } finally {
       setExecuting(false);
     }
+  }
+
+  async function selectScenario(scenarioId: DemoScenarioId) {
+    if (executing || resetting || scenarioId === selectedScenarioId) return;
+    setSelectedScenarioId(scenarioId);
+    await resetDemo(scenarioId);
   }
 
   const writeEvents = useMemo(
@@ -261,10 +299,15 @@ export function CounterstepApp() {
     [demo, error, executing, resetting, run],
   );
   const terminalNotice = useMemo(() => getTerminalRunNotice(run), [run]);
+  const selectedScenario =
+    scenarios.find((scenario) => scenario.scenarioId === selectedScenarioId) ??
+    demo?.scenario;
+  const scenarioAssessment = run?.scenarioAssessment;
+  const scenarioContract = scenarioAssessment?.expected ?? selectedScenario?.expected;
   const actionLabel = executing
     ? `Running · ${run?.run.status.replaceAll("_", " ") ?? "starting"}`
     : run && TERMINAL.has(run.run.status)
-      ? "Run Counterstep again"
+      ? "Rerun fresh scenario"
       : "Run Counterstep";
 
   return (
@@ -276,6 +319,7 @@ export function CounterstepApp() {
         aria-atomic="true"
       >
         {announcement}
+        {demo ? ` Selected scenario: ${demo.scenario.label}.` : ""}
       </p>
       <header className="cs-masthead">
         <a className="cs-brand" href="#top" aria-label="Counterstep home">
@@ -307,6 +351,37 @@ export function CounterstepApp() {
         </aside>
       </div>
 
+      <section className="cs-scenario-rack" aria-labelledby="scenario-rack-title">
+        <header>
+          <div>
+            <p>Recovery test rack</p>
+            <h2 id="scenario-rack-title">Prove the boundary, not just the happy path.</h2>
+          </div>
+          <span>4 deterministic conditions</span>
+        </header>
+        <fieldset disabled={executing || resetting || scenarios.length === 0}>
+          <legend className="cs-sr-only">Choose a synthetic recovery condition</legend>
+          {scenarios.map((scenario) => {
+            const selected = scenario.scenarioId === selectedScenarioId;
+            return (
+              <button
+                key={scenario.scenarioId}
+                type="button"
+                className={`cs-scenario-choice ${selected ? "is-selected" : ""}`}
+                aria-pressed={selected}
+                onClick={() => void selectScenario(scenario.scenarioId)}
+              >
+                <span>{scenario.code}</span>
+                <strong>{scenario.label}</strong>
+                <small>
+                  {scenario.expected.outcome.replaceAll("_", " ")} · {scenario.expected.writes} {scenario.expected.writes === 1 ? "write" : "writes"}
+                </small>
+              </button>
+            );
+          })}
+        </fieldset>
+      </section>
+
       <section
         className="cs-command"
         aria-label="Recovery controls"
@@ -315,7 +390,7 @@ export function CounterstepApp() {
         <div>
           <span className="cs-label">Bounded recovery</span>
           <p id="cs-recovery-limit">
-            Two resources · two permitted writes · final verification required
+            Two resources · deterministic authority · fresh-state verification
           </p>
         </div>
         <button
@@ -330,12 +405,72 @@ export function CounterstepApp() {
         <button
           className="cs-secondary"
           type="button"
-          onClick={() => void resetDemo()}
+          onClick={() => void resetDemo(selectedScenarioId)}
           disabled={executing || resetting}
         >
           {resetting ? "Resetting sandbox…" : "Reset synthetic demo"}
         </button>
       </section>
+
+      {selectedScenario ? (
+        <section className="cs-scenario-brief" aria-label="Selected scenario evidence boundary">
+          <div>
+            <span>Injected state</span>
+            <p>{selectedScenario.setup}</p>
+          </div>
+          <div>
+            <span>Safety claim under test</span>
+            <p>{selectedScenario.safetyClaim}</p>
+          </div>
+          <small>{selectedScenario.disclosure}</small>
+        </section>
+      ) : null}
+
+      {scenarioContract ? (
+        <section
+          className={`cs-contract cs-contract-${scenarioAssessment?.status ?? "awaiting_terminal"}`}
+          aria-labelledby="scenario-contract-title"
+        >
+          <div className="cs-contract-lead">
+            <span>Expected vs observed</span>
+            <h2 id="scenario-contract-title">
+              {scenarioAssessment?.status === "matched"
+                ? "Contract matched"
+                : scenarioAssessment?.status === "mismatched"
+                  ? "Contract mismatch"
+                  : "Contract armed"}
+            </h2>
+            <p>
+              {scenarioAssessment?.status === "mismatched"
+                ? scenarioAssessment.mismatches.join(" · ")
+                : scenarioAssessment?.status === "matched"
+                  ? "The terminal run matched every predeclared scenario measure."
+                  : "Observed values remain blank until the run reaches a terminal state."}
+            </p>
+          </div>
+          <dl>
+            {([
+              ["Outcome", "outcome"],
+              ["Writes", "writes"],
+              ["Replans", "replans"],
+              ["Tool calls", "toolCalls"],
+              ["Plans", "approvedPlans"],
+            ] as const).map(([label, field]) => (
+              <div key={field}>
+                <dt>{label}</dt>
+                <dd>
+                  <span>{String(scenarioContract[field]).replaceAll("_", " ")}</span>
+                  <strong>
+                    {scenarioAssessment?.observed
+                      ? String(scenarioAssessment.observed[field]).replaceAll("_", " ")
+                      : "—"}
+                  </strong>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ) : null}
 
       {error ? (
         <div className="cs-error" role="alert">

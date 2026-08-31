@@ -8,7 +8,6 @@ import { digestObject, digestText } from "./digest";
 import { buildFixtureRecoveryPlan } from "./fixturePlanner";
 import { evaluateRecoveryPlan } from "./gate";
 import {
-  createInitialResources,
   createRemediationAuthority,
   getSourceIncidentContext,
 } from "./incident";
@@ -16,6 +15,11 @@ import type {
   CounterstepRepository,
   ToolExecutionName,
 } from "./repository";
+import {
+  assessScenarioRun,
+  createScenarioResources,
+  getDemoScenario,
+} from "./scenarios";
 import {
   ActionEventSchema,
   COUNTERSTEP_EVENT_SCHEMA_VERSION,
@@ -28,6 +32,7 @@ import {
   type ActionEvent,
   type AtomicWriteResult,
   type ClosureReceipt,
+  type DemoScenarioId,
   type GenerationSource,
   type InspectionRecord,
   type PlanDecision,
@@ -97,13 +102,17 @@ export class CounterstepService {
     this.appVersion = options.appVersion ?? "0.1.0";
   }
 
-  async resetDemo(): Promise<PublicDemoView> {
+  async resetDemo(
+    scenarioId: DemoScenarioId = "canonical_recovery",
+  ): Promise<PublicDemoView> {
     const source = await getSourceIncidentContext();
     const timestamp = this.isoNow();
     const demoId = this.id("demo");
-    const resources = createInitialResources(demoId, timestamp);
+    const scenario = getDemoScenario(scenarioId);
+    const resources = createScenarioResources(demoId, timestamp, scenarioId);
     const demo = DemoRecordSchema.parse({
       demoId,
+      scenarioId,
       sourceReceiptDigest: source.sourceReceiptDigest,
       createdAt: timestamp,
       resourceIds: resources.map((resource) => resource.resourceId),
@@ -111,6 +120,7 @@ export class CounterstepService {
     await this.repository.resetDemo(demo, resources);
     return PublicDemoViewSchema.parse({
       demo,
+      scenario,
       incident: source.publicView,
       resources,
     });
@@ -131,6 +141,7 @@ export class CounterstepService {
     }
     return PublicDemoViewSchema.parse({
       demo,
+      scenario: getDemoScenario(demo.scenarioId),
       incident: source.publicView,
       resources,
     });
@@ -195,6 +206,7 @@ export class CounterstepService {
       events,
       resources,
       closure,
+      demo,
     ] =
       await Promise.all([
         this.repository.getAuthority(runId),
@@ -204,8 +216,10 @@ export class CounterstepService {
         this.repository.listEvents(runId),
         this.repository.listResources(run.demoId),
         this.repository.getClosure(runId),
+        this.repository.getDemo(run.demoId),
       ]);
     if (!authority) throw new Error("Remediation authority is missing.");
+    if (!demo) throw new Error("Demo record is missing.");
     return PublicRunViewSchema.parse({
       run,
       authority,
@@ -215,6 +229,11 @@ export class CounterstepService {
       events,
       currentResources: resources,
       closure,
+      scenarioAssessment: assessScenarioRun({
+        scenarioId: demo.scenarioId,
+        run,
+        approvedPlanCount: approvedPlans.length,
+      }),
     });
   }
 
@@ -307,6 +326,10 @@ export class CounterstepService {
       status: "authorizing",
     });
     await this.repository.saveRun(authorizingRun);
+    await this.applyStaleScenarioMutationIfNeeded({
+      run: authorizingRun,
+      existingDecision,
+    });
     const inspections = await this.repository.listInspections(runId);
     const decidedAt = this.isoNow();
     const decision = evaluateRecoveryPlan({
@@ -583,6 +606,36 @@ export class CounterstepService {
     }
     await this.verifyClosure(runId, activeDecision.plan.planId);
     return this.requireRunView(runId);
+  }
+
+  private async applyStaleScenarioMutationIfNeeded(input: {
+    run: RemediationRun;
+    existingDecision: PlanDecision | undefined;
+  }): Promise<void> {
+    if (input.existingDecision) return;
+    const demo = await this.repository.getDemo(input.run.demoId);
+    if (!demo || demo.scenarioId !== "stale_replan") return;
+    const inspections = await this.repository.listInspections(input.run.runId);
+    if (
+      new Set(inspections.map((inspection) => inspection.resourceId)).size !==
+      demo.resourceIds.length
+    ) {
+      return;
+    }
+    const spreadsheetInspection = inspections
+      .filter(
+        (inspection) =>
+          inspection.resourceId === "sheet-churn-export-001" &&
+          inspection.snapshot.kind === "spreadsheet",
+      )
+      .at(-1);
+    if (!spreadsheetInspection) return;
+    await this.repository.applyStaleScenarioMutation({
+      demoId: demo.demoId,
+      resourceId: spreadsheetInspection.resourceId,
+      expectedVersion: spreadsheetInspection.snapshot.version,
+      timestamp: this.isoNow(),
+    });
   }
 
   async failClosedWithoutExecution(

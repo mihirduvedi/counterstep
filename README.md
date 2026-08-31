@@ -35,6 +35,19 @@ The selected model is `gemini-3.5-flash-lite`, which supports function calling. 
 
 The model must call them in a bounded recovery sequence. Every FunctionTool is server-bound to the active run. Gemini cannot supply a different run ID or an idempotency key; Counterstep derives the key from the approved action envelope. The gate and write transaction remain authoritative even when the model calls a tool with bad arguments.
 
+### Recovery Test Rack
+
+The judge interface includes four selectable, disclosed synthetic conditions that exercise the same two-resource P0 authority boundary:
+
+| Case | Injected current state | Predeclared terminal contract |
+|---|---|---|
+| E1 Canonical recovery | External spreadsheet, queued message | `repaired`, 2 writes, 0 replans, 6 tool calls, 1 plan |
+| E2 Already safe | Revoked spreadsheet, cancelled message | `repaired`, 0 writes, 0 replans, 4 tool calls, 1 plan |
+| E3 Irreversible delivery | External spreadsheet, delivered message | `partially_repaired`, 1 write, 0 replans, 5 tool calls, 1 plan |
+| E4 Stale-state replan | Reversible start, then an external spreadsheet version bump after inspection | `repaired`, 2 writes, 1 replan, 10 tool calls, 2 plans |
+
+The expected contract is rendered before execution. After a terminal result, server-owned deterministic code compares the observed outcome, write count, replan count, tool-call count, and approved-plan count. The UI reports `Contract matched` only when all five measures agree. The E4 concurrency injection is an atomic, idempotent sandbox mutation, not an agent action; it is disclosed in the interface and excluded from the remediation write count and action receipt. The first stale write is therefore genuinely refused by the same version check used in production, after which Counterstep must re-inspect both governed resources and admit one replacement plan.
+
 ## Trust contract
 
 Counterstep will not:
@@ -110,7 +123,7 @@ npm run test:firestore
 
 This starts the official Firestore emulator for the isolated `demo-counterstep` project, runs the production repository against it, and shuts the emulator down. The `demo-` project boundary prevents accidental access to live resources. The first invocation downloads the pinned emulator binary to Firebase's user cache. It does not require a Firebase login, Google Cloud project, service-account key, or billing account.
 
-The seven-case suite covers complete canonical persistence and closure, isolated reset/repeat, concurrent idempotent execution, concurrent daily admission, one-time stale re-inspection/replan with immutable plan history, deterministic second-stale blocking, and delivered-message partial repair. Emulator evidence validates the Firestore transaction contract locally; it is not managed-Firestore or Cloud Run evidence.
+The eight-case suite covers complete canonical persistence and closure, isolated reset/repeat, concurrent idempotent execution, concurrent daily admission, the Recovery Test Rack's atomic stale-scenario mutation, one-time injected stale re-inspection/replan with immutable plan history, deterministic second-stale blocking, and delivered-message partial repair. Emulator evidence validates the Firestore transaction contract locally; it is not managed-Firestore or Cloud Run evidence.
 
 ### Billing-free local production rehearsal
 
@@ -145,7 +158,8 @@ The managed suite refuses missing or mismatched project confirmation, `demo-` pr
 
 | Method | Route | Purpose |
 |---|---|---|
-| `POST` | `/api/demo/reset` | Create a new isolated synthetic demo |
+| `GET` | `/api/demo/scenarios` | List the four strict Recovery Test Rack contracts |
+| `POST` | `/api/demo/reset` | Create a new isolated synthetic demo for a selected scenario |
 | `GET` | `/api/demo/:demoId` | Read the incident and current sandbox resources |
 | `POST` | `/api/remediation-runs` | Create a receipt-bound run and authority |
 | `POST` | `/api/remediation-runs/:runId/execute` | Start the configured autonomous execution path |
@@ -174,10 +188,11 @@ npm run security:audit
 
 The deterministic evaluation set currently covers:
 
+- all four selectable Recovery Test Rack cases against exact expected-versus-observed contracts;
 - the canonical two-repair path;
 - an already-safe state with zero writes;
 - a delivered message that remains explicitly unresolved;
-- a stale write that triggers full re-inspection and one replacement plan;
+- a disclosed stale-state mutation that triggers full re-inspection and one replacement plan;
 - a second stale write that blocks with zero unsafe overwrites;
 - exact action-receipt binding across original and replacement plans;
 - plan-schema and citation rejection;
@@ -228,6 +243,7 @@ src/counterstep/
   incident.ts                Agent Receipt source and incident grouping
   memoryRepository.ts       local persistence and atomic tool contract
   schemas.ts                 strict versioned Zod contracts
+  scenarios.ts               four synthetic conditions and result oracle
   service.ts                 recovery orchestration and event accounting
 src/app/api/                 request-driven server routes
 src/components/              recovery-ledger interface
@@ -245,13 +261,13 @@ The project began from a clean archive of Agent Receipt commit `296df0798fd49fa5
 Confirmed locally through August 30, 2026:
 
 - strict TypeScript and ESLint pass;
-- 431 automated tests pass;
+- 439 automated tests pass;
 - the Next.js standalone production build passes;
 - a browser-driven deterministic run records 12 events and two writes;
 - both closure goals are satisfied and all 12 events are accounted;
 - a deterministic stale-version evaluation re-inspects both resources, admits one replacement plan, preserves both approved plans, and closes `repaired` without a stale overwrite;
 - a repeated-stale evaluation blocks after the permitted replan with zero state-changing remediation events;
-- seven production-adapter tests pass against the local Firestore emulator, including concurrent idempotency, transactional daily admission, reset/repeat, both stale outcomes, and delivered-message handling;
+- eight production-adapter tests pass against the local Firestore emulator, including concurrent idempotency, transactional daily admission, reset/repeat, the Recovery Test Rack's atomic stale mutation, both injected stale outcomes, and delivered-message handling;
 - the exact production container passes the local rehearsal against the official Firestore emulator: two live `gemini-3.5-flash-lite` / Google ADK journeys each record six bounded tool calls, two authorized writes, and 12 accounted events, and a fresh second container reproduces the first persisted run and closure exactly after application restart;
 - after two later model invocations stopped before closure (one after one write and one after two), the bounded-continuation repair passed a fresh two-journey production rehearsal without weakening the deterministic gate or evidence contract;
 - two fresh pre-release rehearsals built and started the current production image but Gemini stopped before inspection; both attempts failed closed with zero writes and no passing manifest, after which the seven-case credential-free production Firestore repository suite passed against the official emulator;
@@ -260,6 +276,7 @@ Confirmed locally through August 30, 2026:
 - one additional live attempt failed closed before inspection with zero tool calls and zero writes; a later fresh run passed, and the evaluator now reports such deterministic terminal results before requesting a nonexistent receipt;
 - the read-only cloud preflight correctly fails closed for the currently selected but unconfirmed project because billing and the required deployment resources are not ready; it performed no mutation;
 - the closure download fires, reset/repeat succeeds, and the browser console is clean;
+- browser-driven E3 and E4 runs display exact five-field `Contract matched` verdicts; E4 visibly refuses the stale write before re-inspecting and replanning, while E3 leaves delivered state unresolved;
 - the ready, loading, repaired, fail-closed, and offline judge states are explicit;
 - the 360px, 768px, and 1440px layouts have no horizontal overflow, and the
   720px 200% zoom equivalent, reduced-motion, and forced-colors checks pass.
@@ -270,4 +287,4 @@ Not yet claimed:
 - a deployed Cloud Run URL;
 - Cloud Run smoke results.
 
-The exact local live run IDs, closure digests, retained receipt, and evidence limitations are recorded in [docs/LIVE_GEMINI_EVIDENCE_2026-08-29.md](./docs/LIVE_GEMINI_EVIDENCE_2026-08-29.md). The container-restart rehearsal is recorded separately in [docs/LOCAL_PRODUCTION_REHEARSAL_EVIDENCE_2026-08-29.md](./docs/LOCAL_PRODUCTION_REHEARSAL_EVIDENCE_2026-08-29.md). The local rendered-state and accessibility evidence is in [docs/COUNTERSTEP_UI_QA_2026-08-30.md](./docs/COUNTERSTEP_UI_QA_2026-08-30.md). The remaining claims require managed credentials or external deployment state and should be recorded only after they are executed.
+The exact local live run IDs, closure digests, retained receipt, and evidence limitations are recorded in [docs/LIVE_GEMINI_EVIDENCE_2026-08-29.md](./docs/LIVE_GEMINI_EVIDENCE_2026-08-29.md). The container-restart rehearsal is recorded separately in [docs/LOCAL_PRODUCTION_REHEARSAL_EVIDENCE_2026-08-29.md](./docs/LOCAL_PRODUCTION_REHEARSAL_EVIDENCE_2026-08-29.md). The Recovery Test Rack decision, contracts, demo sequence, and evidence boundary are in [docs/RECOVERY_TEST_RACK_2026-08-30.md](./docs/RECOVERY_TEST_RACK_2026-08-30.md). The earlier rendered-state and accessibility evidence is in [docs/COUNTERSTEP_UI_QA_2026-08-30.md](./docs/COUNTERSTEP_UI_QA_2026-08-30.md). The remaining claims require managed credentials or external deployment state and should be recorded only after they are executed.

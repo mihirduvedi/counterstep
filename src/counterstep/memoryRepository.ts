@@ -2,6 +2,7 @@ import { digestObject, digestText } from "./digest";
 import type {
   AtomicWriteRequest,
   CounterstepRepository,
+  StaleScenarioMutationRequest,
 } from "./repository";
 import {
   ActionEventSchema,
@@ -17,6 +18,7 @@ import {
   RemediationRunSchema,
   RunExecutionAdmissionSchema,
   SandboxResourceSchema,
+  ScenarioMutationResultSchema,
   type ActionEvent,
   type AtomicWriteResult,
   type ClosureReceipt,
@@ -114,6 +116,51 @@ export class InMemoryCounterstepRepository implements CounterstepRepository {
   ): Promise<SandboxResource | undefined> {
     const resource = this.resources.get(resourceKey(demoId, resourceId));
     return resource ? copy(resource) : undefined;
+  }
+
+  async applyStaleScenarioMutation(
+    request: StaleScenarioMutationRequest,
+  ) {
+    const demo = this.demos.get(request.demoId);
+    if (
+      !demo ||
+      demo.scenarioId !== "stale_replan" ||
+      request.resourceId !== "sheet-churn-export-001"
+    ) {
+      return ScenarioMutationResultSchema.parse({ status: "not_applicable" });
+    }
+    const key = resourceKey(request.demoId, request.resourceId);
+    const resource = this.resources.get(key);
+    if (demo.scenarioMutationAppliedAt) {
+      return ScenarioMutationResultSchema.parse({
+        status: "already_applied",
+        resource,
+      });
+    }
+    if (
+      !resource ||
+      resource.kind !== "spreadsheet" ||
+      resource.version !== request.expectedVersion
+    ) {
+      return ScenarioMutationResultSchema.parse({ status: "not_applicable" });
+    }
+    const nextResource = SandboxResourceSchema.parse({
+      ...resource,
+      version: resource.version + 1,
+      updatedAt: request.timestamp,
+    });
+    this.resources.set(key, copy(nextResource));
+    this.demos.set(
+      request.demoId,
+      DemoRecordSchema.parse({
+        ...demo,
+        scenarioMutationAppliedAt: request.timestamp,
+      }),
+    );
+    return ScenarioMutationResultSchema.parse({
+      status: "applied",
+      resource: nextResource,
+    });
   }
 
   async createRun(
