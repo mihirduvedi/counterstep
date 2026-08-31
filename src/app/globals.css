@@ -58,6 +58,18 @@ code {
   font-family: var(--mono);
 }
 
+.cs-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .cs-shell {
   width: min(1440px, calc(100% - 40px));
   margin: 20px auto 48px;
@@ -83,6 +95,7 @@ code {
   display: inline-flex;
   align-items: center;
   justify-self: start;
+  min-height: 44px;
   gap: 9px;
   color: inherit;
   font-weight: 800;
@@ -261,11 +274,115 @@ code {
 
 .cs-error {
   display: flex;
+  align-items: baseline;
   gap: 16px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--ink);
   background: var(--amber);
   font-size: 0.84rem;
+}
+
+.cs-run-result {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(330px, 0.7fr) minmax(210px, auto);
+  border-bottom: 1px solid var(--ink);
+  background: var(--green);
+  color: var(--green-ink);
+}
+
+.cs-run-result-attention {
+  background: var(--amber);
+  color: var(--ink);
+}
+
+.cs-run-result > div:first-child {
+  padding: 22px 24px;
+}
+
+.cs-run-result > div:first-child > span {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cs-run-result h2 {
+  margin: 7px 0 5px;
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 2.5vw, 2.55rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.cs-run-result p {
+  max-width: 760px;
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.cs-run-result dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-right: 1px solid rgba(17, 17, 15, 0.45);
+  border-left: 1px solid rgba(17, 17, 15, 0.45);
+}
+
+.cs-run-result dl div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 14px;
+}
+
+.cs-run-result dl div + div {
+  border-left: 1px solid rgba(17, 17, 15, 0.3);
+}
+
+.cs-run-result dt {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cs-run-result dd {
+  margin: 6px 0 0;
+  font-family: var(--serif);
+  font-size: 1.25rem;
+}
+
+.cs-run-result-action {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+}
+
+.cs-run-result-action a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid currentColor;
+  color: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.cs-run-result-action a:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.cs-run-result-action code {
+  font-size: 0.58rem;
+  overflow-wrap: anywhere;
 }
 
 .cs-section {
@@ -439,6 +556,103 @@ code {
 
 .cs-ledger {
   background: #ebe8df;
+}
+
+.cs-phases {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 0 24px;
+  padding: 1px;
+  background: var(--ink);
+  list-style: none;
+}
+
+.cs-phase {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;
+  min-height: 154px;
+  padding: 14px;
+  background: var(--paper);
+}
+
+.cs-phase-index {
+  color: var(--graphite);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+}
+
+.cs-phase strong {
+  display: block;
+  margin-top: 20px;
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.cs-phase p {
+  margin: 5px 0 12px;
+  color: var(--graphite);
+  font-size: 0.7rem;
+}
+
+.cs-phase small {
+  align-self: end;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.cs-phase-complete {
+  background: var(--green);
+  color: var(--green-ink);
+}
+
+.cs-phase-active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.cs-phase-active .cs-phase-index,
+.cs-phase-active p {
+  color: #c8c5bc;
+}
+
+.cs-phase-stopped {
+  background: var(--amber);
+}
+
+.cs-provenance {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 0 34px;
+  padding: 1px;
+  background: var(--rule);
+}
+
+.cs-provenance div {
+  min-width: 0;
+  padding: 11px 13px;
+  background: #ebe8df;
+}
+
+.cs-provenance dt {
+  color: var(--graphite);
+  font-size: 0.57rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cs-provenance dd {
+  margin: 5px 0 0;
+  font-family: var(--mono);
+  font-size: 0.67rem;
+  overflow-wrap: anywhere;
 }
 
 .cs-status {
@@ -805,6 +1019,27 @@ code {
     border-bottom: 1px solid #55544e;
   }
 
+  .cs-run-result {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.8fr);
+  }
+
+  .cs-run-result > div:first-child {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid rgba(17, 17, 15, 0.45);
+  }
+
+  .cs-run-result dl {
+    border-left: 0;
+  }
+
+  .cs-phases {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cs-provenance {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .cs-resource {
     grid-template-columns: 190px 1fr;
   }
@@ -842,13 +1077,30 @@ code {
   }
 
   .cs-hero-copy {
-    min-height: 410px;
-    padding-right: 20px;
-    padding-left: 20px;
+    min-height: 0;
+    padding: 26px 20px 21px;
   }
 
   .cs-hero h1 {
-    font-size: clamp(2.9rem, 15vw, 4.5rem);
+    font-size: clamp(2.75rem, 13.4vw, 4rem);
+  }
+
+  .cs-dek {
+    margin-top: 20px;
+  }
+
+  .cs-incident-stamp {
+    min-height: 0;
+    padding: 20px;
+  }
+
+  .cs-incident-stamp > strong {
+    margin: 20px 0;
+    font-size: 2rem;
+  }
+
+  .cs-incident-stamp dl div {
+    padding-top: 9px;
   }
 
   .cs-command {
@@ -862,11 +1114,49 @@ code {
     border-left: 0;
   }
 
+  .cs-command > div {
+    padding: 11px 20px;
+  }
+
   .cs-primary,
   .cs-secondary {
     width: 100%;
     min-height: 60px;
     border-top: 1px solid #55544e;
+  }
+
+  .cs-error {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cs-run-result {
+    grid-template-columns: 1fr;
+  }
+
+  .cs-run-result > div:first-child,
+  .cs-run-result dl,
+  .cs-run-result-action {
+    grid-column: 1;
+  }
+
+  .cs-run-result dl {
+    border-top: 1px solid rgba(17, 17, 15, 0.45);
+    border-right: 0;
+    border-bottom: 1px solid rgba(17, 17, 15, 0.45);
+  }
+
+  .cs-phases {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cs-phase {
+    min-height: 142px;
+  }
+
+  .cs-provenance {
+    grid-template-columns: 1fr;
   }
 
   .cs-section-head {
@@ -968,5 +1258,26 @@ code {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .cs-primary,
+  .cs-secondary,
+  .cs-run-result-action a,
+  .cs-download {
+    border: 2px solid ButtonText;
+  }
+
+  .cs-phase-active {
+    outline: 3px double Highlight;
+    outline-offset: -5px;
+  }
+
+  .cs-state-line > div.is-changed,
+  .cs-phase-complete,
+  .cs-phase-stopped,
+  .cs-run-result {
+    border: 2px solid CanvasText;
   }
 }

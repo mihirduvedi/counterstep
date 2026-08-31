@@ -14,6 +14,8 @@ export const COUNTERSTEP_EVENT_SCHEMA_VERSION =
   "counterstep.action-event.v1" as const;
 export const COUNTERSTEP_CLOSURE_SCHEMA_VERSION =
   "counterstep.closure-receipt.v1" as const;
+export const COUNTERSTEP_DAILY_RUN_COUNTER_SCHEMA_VERSION =
+  "counterstep.daily-run-counter.v1" as const;
 
 export const CLOSURE_QUALIFIER =
   "Based on the supplied original trace, remediation authority, recorded tool results, and final sandbox snapshots." as const;
@@ -27,6 +29,38 @@ const DigestSchema = z.string().regex(/^[a-f0-9]{64}$/);
 const NonNegativeIntegerSchema = z.number().int().nonnegative();
 const PositiveIntegerSchema = z.number().int().positive();
 const DataCategoriesSchema = z.array(z.string().min(1).max(80)).max(20);
+const UtcDateKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+export const RunExecutionAdmissionSchema = z
+  .object({
+    dateKey: UtcDateKeySchema,
+    maxRuns: PositiveIntegerSchema.max(10_000),
+    timestamp: Rfc3339Schema,
+  })
+  .strict()
+  .superRefine((value, context) => {
+    if (new Date(value.timestamp).toISOString().slice(0, 10) !== value.dateKey) {
+      context.addIssue({
+        code: "custom",
+        path: ["dateKey"],
+        message: "Daily execution admission must use the timestamp's UTC date.",
+      });
+    }
+  });
+export type RunExecutionAdmission = z.infer<
+  typeof RunExecutionAdmissionSchema
+>;
+
+export const DailyRunCounterSchema = z
+  .object({
+    schemaVersion: z.literal(COUNTERSTEP_DAILY_RUN_COUNTER_SCHEMA_VERSION),
+    dateKey: UtcDateKeySchema,
+    count: NonNegativeIntegerSchema,
+    configuredLimit: PositiveIntegerSchema.max(10_000),
+    updatedAt: Rfc3339Schema,
+  })
+  .strict();
+export type DailyRunCounter = z.infer<typeof DailyRunCounterSchema>;
 
 const ResourceBaseSchema = z.object({
   schemaVersion: z.literal(COUNTERSTEP_RESOURCE_SCHEMA_VERSION),
@@ -208,43 +242,57 @@ export const RecoveryPlanStepSchema = z.discriminatedUnion("tool", [
 ]);
 export type RecoveryPlanStep = z.infer<typeof RecoveryPlanStepSchema>;
 
+function validateRecoveryPlanSteps(
+  value: { steps: RecoveryPlanStep[] },
+  context: z.RefinementCtx,
+) {
+  const stepIds = value.steps.map((step) => step.stepId);
+  if (new Set(stepIds).size !== stepIds.length) {
+    context.addIssue({
+      code: "custom",
+      path: ["steps"],
+      message: "Plan step IDs must be unique.",
+    });
+  }
+  if (value.steps.at(-1)?.tool !== "verify_closure") {
+    context.addIssue({
+      code: "custom",
+      path: ["steps"],
+      message: "The final plan step must verify closure.",
+    });
+  }
+  const writeCount = value.steps.filter(
+    (step) => step.tool !== "verify_closure",
+  ).length;
+  if (writeCount > 2) {
+    context.addIssue({
+      code: "custom",
+      path: ["steps"],
+      message: "A plan can contain at most two consequential steps.",
+    });
+  }
+}
+
+const RecoveryPlanModelFields = {
+  schemaVersion: z.literal(COUNTERSTEP_PLAN_SCHEMA_VERSION),
+  planId: StrictIdSchema,
+  sourceReceiptDigest: DigestSchema,
+  rationaleSummary: z.string().min(1).max(400),
+  steps: z.array(RecoveryPlanStepSchema).min(1).max(5),
+} as const;
+
+export const RecoveryPlanToolInputSchema = z
+  .object(RecoveryPlanModelFields)
+  .strict()
+  .superRefine(validateRecoveryPlanSteps);
+
 export const RecoveryPlanSchema = z
   .object({
-    schemaVersion: z.literal(COUNTERSTEP_PLAN_SCHEMA_VERSION),
-    planId: StrictIdSchema,
+    ...RecoveryPlanModelFields,
     runId: StrictIdSchema,
-    sourceReceiptDigest: DigestSchema,
-    rationaleSummary: z.string().min(1).max(400),
-    steps: z.array(RecoveryPlanStepSchema).min(1).max(5),
   })
   .strict()
-  .superRefine((value, context) => {
-    const stepIds = value.steps.map((step) => step.stepId);
-    if (new Set(stepIds).size !== stepIds.length) {
-      context.addIssue({
-        code: "custom",
-        path: ["steps"],
-        message: "Plan step IDs must be unique.",
-      });
-    }
-    if (value.steps.at(-1)?.tool !== "verify_closure") {
-      context.addIssue({
-        code: "custom",
-        path: ["steps"],
-        message: "The final plan step must verify closure.",
-      });
-    }
-    const writeCount = value.steps.filter(
-      (step) => step.tool !== "verify_closure",
-    ).length;
-    if (writeCount > 2) {
-      context.addIssue({
-        code: "custom",
-        path: ["steps"],
-        message: "A plan can contain at most two consequential steps.",
-      });
-    }
-  });
+  .superRefine(validateRecoveryPlanSteps);
 export type RecoveryPlan = z.infer<typeof RecoveryPlanSchema>;
 
 export const PlanRejectionCodeSchema = z.enum([

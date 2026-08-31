@@ -7,22 +7,27 @@ import {
   ActionEventSchema,
   AtomicWriteResultSchema,
   ClosureReceiptSchema,
+  COUNTERSTEP_DAILY_RUN_COUNTER_SCHEMA_VERSION,
+  DailyRunCounterSchema,
   DemoRecordSchema,
   InspectionRecordSchema,
   PlanDecisionSchema,
   RecoveryPlanSchema,
   RemediationAuthoritySchema,
   RemediationRunSchema,
+  RunExecutionAdmissionSchema,
   SandboxResourceSchema,
   type ActionEvent,
   type AtomicWriteResult,
   type ClosureReceipt,
+  type DailyRunCounter,
   type DemoRecord,
   type InspectionRecord,
   type PlanDecision,
   type RecoveryPlan,
   type RemediationAuthority,
   type RemediationRun,
+  type RunExecutionAdmission,
   type SandboxResource,
 } from "./schemas";
 
@@ -54,6 +59,7 @@ export class InMemoryCounterstepRepository implements CounterstepRepository {
   private readonly approvedPlans = new Map<string, RecoveryPlan[]>();
   private readonly closures = new Map<string, ClosureReceipt>();
   private readonly idempotency = new Map<string, AtomicWriteResult>();
+  private readonly dailyRunCounters = new Map<string, DailyRunCounter>();
 
   async ping(): Promise<boolean> {
     return true;
@@ -147,14 +153,32 @@ export class InMemoryCounterstepRepository implements CounterstepRepository {
     return authority ? copy(authority) : undefined;
   }
 
-  async claimRunForExecution(runId: string): Promise<boolean> {
+  async claimRunForExecution(
+    runId: string,
+    admission: RunExecutionAdmission,
+  ) {
+    const parsedAdmission = RunExecutionAdmissionSchema.parse(admission);
     const run = this.runs.get(runId);
-    if (!run || run.status !== "created") return false;
+    if (!run || run.status !== "created") return "already_started" as const;
+    const current = this.dailyRunCounters.get(parsedAdmission.dateKey);
+    if ((current?.count ?? 0) >= parsedAdmission.maxRuns) {
+      return "daily_limit_exceeded" as const;
+    }
     this.runs.set(
       runId,
       RemediationRunSchema.parse({ ...run, status: "inspecting" }),
     );
-    return true;
+    this.dailyRunCounters.set(
+      parsedAdmission.dateKey,
+      DailyRunCounterSchema.parse({
+        schemaVersion: COUNTERSTEP_DAILY_RUN_COUNTER_SCHEMA_VERSION,
+        dateKey: parsedAdmission.dateKey,
+        count: (current?.count ?? 0) + 1,
+        configuredLimit: parsedAdmission.maxRuns,
+        updatedAt: parsedAdmission.timestamp,
+      }),
+    );
+    return "claimed" as const;
   }
 
   async saveRun(run: RemediationRun): Promise<void> {

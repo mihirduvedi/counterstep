@@ -277,6 +277,50 @@ describe("FirestoreCounterstepRepository against the local emulator", () => {
     30_000,
   );
 
+  it(
+    "admits executions under one transactional daily cap",
+    async () => {
+      const repository = new FirestoreCounterstepRepository(db);
+      const service = harness(repository, "daily-limit");
+      const demo = await service.resetDemo();
+      const createRun = () =>
+        service.createRun({
+          demoId: demo.demo.demoId,
+          sourceReceiptDigest: demo.demo.sourceReceiptDigest,
+          generationSource: "deterministic_fixture",
+        });
+      const [firstRun, secondRun, thirdRun] = await Promise.all([
+        createRun(),
+        createRun(),
+        createRun(),
+      ]);
+      const admission = {
+        dateKey: "2026-08-29",
+        maxRuns: 2,
+        timestamp: "2026-08-29T18:05:00.000Z",
+      } as const;
+
+      await expect(
+        Promise.all([
+          repository.claimRunForExecution(firstRun.runId, admission),
+          repository.claimRunForExecution(firstRun.runId, admission),
+        ]),
+      ).resolves.toEqual(
+        expect.arrayContaining(["claimed", "already_started"]),
+      );
+      await expect(
+        repository.claimRunForExecution(secondRun.runId, admission),
+      ).resolves.toBe("claimed");
+      await expect(
+        repository.claimRunForExecution(thirdRun.runId, admission),
+      ).resolves.toBe("daily_limit_exceeded");
+      await expect(repository.getRun(thirdRun.runId)).resolves.toMatchObject({
+        status: "created",
+      });
+    },
+    30_000,
+  );
+
   it("re-inspects, replans once, and preserves both approved plans after stale state", async () => {
     const repository = new StaleInjectingFirestoreRepository(
       db,

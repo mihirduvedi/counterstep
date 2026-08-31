@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   RecoveryPlanSchema,
+  RunExecutionAdmissionSchema,
   SandboxResourceSchema,
 } from "../../src/counterstep/schemas.js";
 
@@ -45,5 +46,15 @@ describe("Counterstep strict schemas", () => {
       ],
     });
     expect(parsed.success).toBe(false);
+  });
+
+  it("binds daily execution admission to the timestamp's UTC date", () => {
+    expect(
+      RunExecutionAdmissionSchema.safeParse({
+        dateKey: "2026-08-29",
+        maxRuns: 200,
+        timestamp: "2026-08-30T00:00:00.000Z",
+      }).success,
+    ).toBe(false);
   });
 });

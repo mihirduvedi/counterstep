@@ -1,14 +1,26 @@
 import "server-only";
 
+import { z } from "zod";
+
 import { FirestoreCounterstepRepository } from "./firestoreRepository";
 import { InMemoryCounterstepRepository } from "./memoryRepository";
 import type { CounterstepRepository } from "./repository";
+import {
+  RunExecutionAdmissionSchema,
+  type RunExecutionAdmission,
+} from "./schemas";
 import { CounterstepService } from "./service";
 
 export const COUNTERSTEP_APP_VERSION = "0.1.0";
 export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite";
 
 export type AgentMode = "gemini" | "fixture" | "no_execution";
+
+const DailyRunLimitEnvironmentSchema = z.coerce
+  .number()
+  .int()
+  .min(1)
+  .max(10_000);
 
 type Runtime = {
   version: "counterstep-runtime-v2";
@@ -33,6 +45,23 @@ export function getAgentMode(): AgentMode {
 
 export function getGeminiModel(): string {
   return process.env.COUNTERSTEP_GEMINI_MODEL || DEFAULT_GEMINI_MODEL;
+}
+
+export function getDailyRunLimit(): number {
+  return DailyRunLimitEnvironmentSchema.parse(
+    process.env.COUNTERSTEP_MAX_DAILY_RUNS ?? "200",
+  );
+}
+
+export function getRunExecutionAdmission(
+  now: Date = new Date(),
+): RunExecutionAdmission {
+  const timestamp = now.toISOString();
+  return RunExecutionAdmissionSchema.parse({
+    dateKey: timestamp.slice(0, 10),
+    maxRuns: getDailyRunLimit(),
+    timestamp,
+  });
 }
 
 export function getRuntime(): Runtime {

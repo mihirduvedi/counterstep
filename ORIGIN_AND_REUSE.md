@@ -34,14 +34,28 @@ The following functionality is new for this submission:
 - current-state sandbox and reset workflow;
 - Google ADK TypeScript agent using Gemini 3.5 or newer;
 - five bounded recovery tools;
+- one fail-closed ADK continuation admitted only for a nonterminal run with an
+  existing approved active plan, exact remaining approved steps, sufficient
+  original tool budget, and no unhandled failed step;
+- server-bound ADK run authority with application-derived idempotency keys;
 - deterministic plan, authority, version, transition, citation, budget, and idempotency gates;
 - bounded stale-version recovery with fresh re-inspection, one replacement plan, and immutable approved-plan history;
 - Firestore-backed sandbox/run/event/receipt persistence;
+- atomic UTC daily execution admission shared by memory and Firestore;
 - credential-free Firestore emulator integration coverage for reset, concurrency,
-  idempotency, stale recovery, repeated-stale blocking, and irreversible state;
+  idempotency, daily admission, stale recovery, repeated-stale blocking, and irreversible state;
+- a fail-closed local production rehearsal that builds the exact container, runs
+  the production Firestore adapter against the official emulator, executes live
+  Gemini/ADK, restarts the application process, and proves persisted receipt
+  continuity without relabeling emulator evidence as managed or deployed;
+- an explicitly project-confirmed, write-acknowledged managed Firestore evidence
+  harness that retains bounded synthetic records and is excluded from default tests;
 - remediation action events and action-receipt evaluation;
 - deterministic closure evaluator and closure receipt;
 - Counterstep API routes and focused judge interface;
+- deterministic six-stage recovery progress, terminal fail-closed summaries,
+  runtime provenance, strict browser response validation, and responsive
+  accessibility hardening for the focused judge interface;
 - Cloud Run deployment configuration, evaluation cases, architecture, and release evidence.
 
 Creating a new repository does not reset the age of reused code. Submission materials must link this file and describe Counterstep as a new remediation layer built on a disclosed Agent Receipt foundation.
@@ -51,9 +65,11 @@ Creating a new repository does not reset the age of reused code. Submission mate
 | Evidence layer | Current status | What it does and does not establish |
 |---|---|---|
 | Automated local | Passed | Lint, strict TypeScript, deterministic tests, Next.js production build, and release audit pass locally. |
-| Firestore emulator | Passed locally | Six tests execute the production Firestore repository against the official local emulator, including concurrent idempotency and stale transactions. This does not establish managed Firestore behavior. |
-| Google ADK / Gemini live | Not run | Agent and tool contracts compile, but no valid Gemini execution is claimed without a server-only credential. |
-| Managed Firestore | Not run | No Google Cloud project mutation or managed-database transaction is claimed. |
-| Cloud Run / deployed | Not run | Deployment configuration exists, but there is no deployment or public smoke claim. |
-| Visual | Passed for the deterministic canonical path | Browser reset/run/download and responsive overflow checks passed; stale replacement-plan rendering remains untested. |
-| Accessibility | Partially checked | Static semantics and labels are present; keyboard-only, 200% zoom, reduced-motion, forced-colors, and screen-reader checks remain manual and unclaimed. |
+| Firestore emulator | Passed locally | Seven tests execute the production Firestore repository against the official local emulator, including concurrent idempotency, atomic daily admission, and stale transactions. This does not establish managed Firestore behavior. |
+| Local production rehearsal | Prior complete pass retained; fresh reruns failed closed | A prior exact production-container rehearsal passed twice around an application restart and reproduced the first persisted run and closure from the official emulator. Two fresh pre-release attempts built and started the current image but Gemini stopped before inspection; both failed closed with zero writes and emitted no passing manifest. Managed Firestore, Cloud Run, and deployed claims remain `false`. |
+| Google ADK / Gemini live | Prior passes retained; latest two attempts failed closed | Recorded prior `gemini-3.5-flash-lite` runs executed through Google ADK with six bounded tool calls, two authorized writes, 12 accounted events, an in-authority action receipt, and a digest-valid closure. The latest two fresh attempts stopped before inspection with zero writes. This proves safe current failure behavior, not a fresh passing managed or deployed result. |
+| Managed Firestore | Harness ready; transaction run not run | The opt-in six-case production-adapter harness compiles, eight configuration-guard tests pass, and its unconfigured invocation stops before Firestore client construction. No Google Cloud project mutation or managed-database transaction is claimed. |
+| Cloud readiness | Local image passed; project blocked without mutation | The production container builds and starts locally. Read-only preflight validates the exact project, billing, APIs, Firestore, Artifact Registry, dedicated service identity, pinned secret version, and Cloud Run presence. The currently selected but unconfirmed project is not ready. |
+| Cloud Run / deployed | Not run | The locked one-instance deployment configuration and two-run evidence gate exist, but there is no deployment or public smoke claim. |
+| Visual | Passed locally for the tested judge states | Ready, loading, repaired, fail-closed, and offline states passed at 360, 768, and 1440 CSS pixels; the 720-pixel 200% zoom equivalent also passed without horizontal overflow. Stale replacement-plan rendering remains untested in this pass. |
+| Accessibility | Partially checked locally | Static UI scan, accessibility-tree inspection, named live/phase status, text event states, target sizing, contrast, 200% zoom equivalent, reduced motion, and forced colors passed for the tested path. A genuine keyboard-only run and real screen-reader check remain manual and unclaimed. |

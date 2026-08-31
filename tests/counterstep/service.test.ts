@@ -196,9 +196,62 @@ describe("Counterstep end-to-end deterministic contract", () => {
       sourceReceiptDigest: demo.demo.sourceReceiptDigest,
       generationSource: "deterministic_fixture",
     });
-    await expect(repository.claimRunForExecution(run.runId)).resolves.toBe(true);
-    await expect(repository.claimRunForExecution(run.runId)).resolves.toBe(false);
+    const admission = {
+      dateKey: "2026-08-29",
+      maxRuns: 200,
+      timestamp: "2026-08-29T18:00:00.000Z",
+    } as const;
+    await expect(
+      repository.claimRunForExecution(run.runId, admission),
+    ).resolves.toBe("claimed");
+    await expect(
+      repository.claimRunForExecution(run.runId, admission),
+    ).resolves.toBe("already_started");
     const view = await service.runFixture(run.runId);
     expect(view.run.status).toBe("repaired");
+  });
+
+  it("atomically caps executions per UTC day without consuming a slot twice", async () => {
+    const { repository, service } = harness();
+    const demo = await service.resetDemo();
+    const createRun = () =>
+      service.createRun({
+        demoId: demo.demo.demoId,
+        sourceReceiptDigest: demo.demo.sourceReceiptDigest,
+        generationSource: "deterministic_fixture",
+      });
+    const [firstRun, secondRun, thirdRun] = await Promise.all([
+      createRun(),
+      createRun(),
+      createRun(),
+    ]);
+    const admission = {
+      dateKey: "2026-08-29",
+      maxRuns: 2,
+      timestamp: "2026-08-29T18:00:00.000Z",
+    } as const;
+
+    await expect(
+      Promise.all([
+        repository.claimRunForExecution(firstRun.runId, admission),
+        repository.claimRunForExecution(firstRun.runId, admission),
+      ]),
+    ).resolves.toEqual(expect.arrayContaining(["claimed", "already_started"]));
+    await expect(
+      repository.claimRunForExecution(secondRun.runId, admission),
+    ).resolves.toBe("claimed");
+    await expect(
+      repository.claimRunForExecution(thirdRun.runId, admission),
+    ).resolves.toBe("daily_limit_exceeded");
+    await expect(repository.getRun(thirdRun.runId)).resolves.toMatchObject({
+      status: "created",
+    });
+    await expect(
+      repository.claimRunForExecution(thirdRun.runId, {
+        ...admission,
+        dateKey: "2026-08-30",
+        timestamp: "2026-08-30T00:00:00.000Z",
+      }),
+    ).resolves.toBe("claimed");
   });
 });

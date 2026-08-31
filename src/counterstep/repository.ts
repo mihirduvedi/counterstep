@@ -8,12 +8,18 @@ import type {
   RecoveryPlan,
   RemediationAuthority,
   RemediationRun,
+  RunExecutionAdmission,
   SandboxResource,
 } from "./schemas";
 
 export type ToolExecutionName =
   | "revoke_external_access"
   | "cancel_queued_delivery";
+
+export type RunExecutionClaimResult =
+  | "claimed"
+  | "already_started"
+  | "daily_limit_exceeded";
 
 export type AtomicWriteRequest = {
   runId: string;
@@ -51,7 +57,10 @@ export interface CounterstepRepository {
   ): Promise<void>;
   getRun(runId: string): Promise<RemediationRun | undefined>;
   getAuthority(runId: string): Promise<RemediationAuthority | undefined>;
-  claimRunForExecution(runId: string): Promise<boolean>;
+  claimRunForExecution(
+    runId: string,
+    admission: RunExecutionAdmission,
+  ): Promise<RunExecutionClaimResult>;
   saveRun(run: RemediationRun): Promise<void>;
 
   saveEventAndRun(event: ActionEvent, run: RemediationRun): Promise<void>;

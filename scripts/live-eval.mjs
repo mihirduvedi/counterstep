@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 
+import {
+  assertClosureAvailable,
+  assertDownloadedClosure,
+  assertLiveHealth,
+} from "./evidence-contract.mjs";
+
 const baseUrl = (process.env.COUNTERSTEP_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
 
 async function json(path, init) {
@@ -19,9 +25,7 @@ async function json(path, init) {
 
 try {
   const health = await json("/api/health");
-  if (health.agentMode !== "gemini" || !health.geminiConfigured) {
-    throw new Error("Live evaluation requires a running server in configured Gemini mode.");
-  }
+  assertLiveHealth(health);
   const demo = await json("/api/demo/reset", { method: "POST", body: "{}" });
   const created = await json("/api/remediation-runs", {
     method: "POST",
@@ -34,6 +38,11 @@ try {
     method: "POST",
     body: "{}",
   });
+  assertClosureAvailable(result);
+  const closure = await json(
+    `/api/remediation-runs/${encodeURIComponent(created.run.runId)}/closure-receipt`,
+  );
+  assertDownloadedClosure(result, closure);
   const summary = {
     runId: result.run.runId,
     modelId: result.run.modelId,
@@ -42,9 +51,10 @@ try {
     writes: result.run.writeCount,
     recordedEvents: result.events.length,
     closureDigest: result.closure?.integrity.digest,
+    actionReceiptVerdict:
+      result.closure?.remediation.actionReceipt.verdict,
   };
   console.log(JSON.stringify(summary, null, 2));
-  if (result.run.status !== "repaired" || !result.closure) process.exitCode = 1;
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;

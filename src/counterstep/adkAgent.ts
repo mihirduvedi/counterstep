@@ -12,11 +12,28 @@ import { getSourceIncidentContext } from "./incident";
 import type { CounterstepService } from "./service";
 import { deriveIdempotencyKey } from "./service";
 import {
-  RecoveryPlanSchema,
+  RecoveryPlanToolInputSchema,
   type PublicRunView,
   type RemediationAuthority,
   type RemediationRun,
 } from "./schemas";
+
+const TERMINAL_RUN_STATUSES = new Set([
+  "repaired",
+  "partially_repaired",
+  "blocked",
+  "unable_to_verify",
+  "failed",
+]);
+
+type AdkInvocation = (input: {
+  runner: InMemoryRunner;
+  userId: string;
+  sessionId: string;
+  message: string;
+  maxLlmCalls: number;
+  abortSignal: AbortSignal;
+}) => Promise<void>;
 
 const StrictToolIdSchema = z
   .string()
@@ -26,30 +43,29 @@ const StrictToolIdSchema = z
 
 const InspectInputSchema = z
   .object({
-    runId: StrictToolIdSchema,
     resourceId: StrictToolIdSchema,
   })
   .strict();
 
 const WriteInputSchema = z
   .object({
-    runId: StrictToolIdSchema,
     planId: StrictToolIdSchema,
     stepId: StrictToolIdSchema,
     resourceId: StrictToolIdSchema,
     expectedVersion: z.number().int().nonnegative(),
-    idempotencyKey: z.string().regex(/^[a-f0-9]{64}$/),
   })
   .strict();
 
 const VerifyInputSchema = z
   .object({
-    runId: StrictToolIdSchema,
     planId: StrictToolIdSchema,
   })
   .strict();
 
-export function createCounterstepTools(service: CounterstepService) {
+export function createCounterstepTools(input: {
+  service: CounterstepService;
+  runId: string;
+}) {
   let toolQueue: Promise<unknown> = Promise.resolve();
   const serialize = <T>(operation: () => Promise<T>): Promise<T> => {
     const result = toolQueue.then(operation, operation);
@@ -64,26 +80,43 @@ export function createCounterstepTools(service: CounterstepService) {
     description:
       "Read the current sandbox state and version of one resource authorized for this remediation run. Inspect every authorized resource before planning.",
     parameters: InspectInputSchema,
-    execute: async (input) => serialize(() => service.inspectResource(input)),
+    execute: async (toolInput) =>
+      serialize(() =>
+        input.service.inspectResource({
+          runId: input.runId,
+          resourceId: toolInput.resourceId,
+        }),
+      ),
   });
   const submitRecoveryPlan = new FunctionTool({
     name: "submit_recovery_plan",
     description:
       "Submit one strict, source-cited recovery plan to Counterstep's deterministic authorization gate. The last step must be verify_closure. A rejected plan is not executable.",
-    parameters: RecoveryPlanSchema,
+    parameters: RecoveryPlanToolInputSchema,
     execute: async (plan) =>
-      serialize(() => service.submitRecoveryPlan(plan.runId, plan)),
+      serialize(() =>
+        input.service.submitRecoveryPlan(input.runId, {
+          ...plan,
+          runId: input.runId,
+        }),
+      ),
   });
   const revokeExternalAccess = new FunctionTool({
     name: "revoke_external_access",
     description:
       "Execute the already approved spreadsheet-access revocation step. The deterministic service rechecks plan, authority, resource, version, limits, and idempotency atomically.",
     parameters: WriteInputSchema,
-    execute: async (input) =>
+    execute: async (toolInput) =>
       serialize(() =>
-        service.executePlanStep({
-          ...input,
+        input.service.executePlanStep({
+          ...toolInput,
+          runId: input.runId,
           tool: "revoke_external_access",
+          idempotencyKey: deriveIdempotencyKey({
+            ...toolInput,
+            runId: input.runId,
+            tool: "revoke_external_access",
+          }),
         }),
       ),
   });
@@ -92,11 +125,17 @@ export function createCounterstepTools(service: CounterstepService) {
     description:
       "Execute the already approved queued-message cancellation step. Delivered messages are reported as not reversible and are never described as recalled.",
     parameters: WriteInputSchema,
-    execute: async (input) =>
+    execute: async (toolInput) =>
       serialize(() =>
-        service.executePlanStep({
-          ...input,
+        input.service.executePlanStep({
+          ...toolInput,
+          runId: input.runId,
           tool: "cancel_queued_delivery",
+          idempotencyKey: deriveIdempotencyKey({
+            ...toolInput,
+            runId: input.runId,
+            tool: "cancel_queued_delivery",
+          }),
         }),
       ),
   });
@@ -105,8 +144,10 @@ export function createCounterstepTools(service: CounterstepService) {
     description:
       "Perform fresh final resource reads, evaluate every declared closure goal, and produce the integrity-bound closure receipt for the active approved plan.",
     parameters: VerifyInputSchema,
-    execute: async (input) =>
-      serialize(() => service.verifyClosure(input.runId, input.planId)),
+    execute: async (toolInput) =>
+      serialize(() =>
+        input.service.verifyClosure(input.runId, toolInput.planId),
+      ),
   });
   return [
     inspectResource,
@@ -130,10 +171,12 @@ Required sequence:
 1. Call inspect_resource once for every resourceId in authority.readResourceIds.
 2. Construct one RecoveryPlan matching the strict tool schema. Cite only incidentIds, findingIds, and eventIds supplied below. Include only writes still required by inspected state. The final step must call verify_closure.
 3. Call submit_recovery_plan. Stop if rejected. You may submit exactly one replacement plan only after a write returns stale_revision.
-4. For each approved consequential step, call its matching write tool with the exact planId, stepId, resourceId, and expectedVersion. Compute idempotencyKey as SHA-256 of "runId:planId:stepId:tool:resourceId" in lowercase hex.
+4. For each approved consequential step, call its matching write tool with the exact planId, stepId, resourceId, and expectedVersion. Counterstep binds the run ID and derives the idempotency key server-side; never invent either value.
 5. If a write returns stale_revision, do not retry it. Re-inspect every resourceId in authority.readResourceIds, submit one replacement plan using only the newest inspection for each resource, and execute only the still-required approved steps. If any later write is stale, stop.
 6. Call verify_closure with the active planId.
 7. End with a one-sentence factual status. Do not claim more than the tool result.
+
+You are not finished merely because every write succeeded. The run is complete only after verify_closure returns a terminal result.
 
 Run envelope:
 ${JSON.stringify(input.run)}
@@ -164,7 +207,12 @@ export async function createCounterstepAgent(input: {
       authority: input.authority,
       sourceContext,
     }),
-    tools: [...createCounterstepTools(input.service)],
+    tools: [
+      ...createCounterstepTools({
+        service: input.service,
+        runId: input.run.runId,
+      }),
+    ],
     includeContents: "none",
     disallowTransferToParent: true,
     disallowTransferToPeers: true,
@@ -174,11 +222,128 @@ export async function createCounterstepAgent(input: {
   });
 }
 
+export function buildBoundedContinuationMessage(
+  view: PublicRunView,
+): string | undefined {
+  if (
+    view.closure ||
+    TERMINAL_RUN_STATUSES.has(view.run.status) ||
+    view.run.status !== "executing" ||
+    !view.run.activePlanId ||
+    view.planDecision?.status !== "approved" ||
+    view.planDecision.plan.planId !== view.run.activePlanId
+  ) {
+    return undefined;
+  }
+  const activePlan = view.approvedPlans.find(
+    (plan) => plan.planId === view.run.activePlanId,
+  );
+  if (!activePlan) return undefined;
+
+  const completedResultCodes = new Set([
+    "succeeded",
+    "idempotent_replay",
+    "already_safe",
+    "not_reversible",
+  ]);
+  const completedStepIds = new Set(
+    view.events
+      .filter(
+        (event) =>
+          event.planId === activePlan.planId &&
+          event.stepId &&
+          completedResultCodes.has(event.resultCode),
+      )
+      .map((event) => event.stepId as string),
+  );
+  const unsafeFailedStep = view.events.some(
+    (event) =>
+      event.planId === activePlan.planId &&
+      event.stepId &&
+      event.status === "failed" &&
+      event.resultCode !== "not_reversible",
+  );
+  if (unsafeFailedStep) return undefined;
+
+  const consequentialSteps = activePlan.steps.filter(
+    (step) => step.tool !== "verify_closure",
+  );
+  const remainingSteps = consequentialSteps
+    .filter((step) => !completedStepIds.has(step.stepId))
+    .map((step) => ({
+      planId: activePlan.planId,
+      stepId: step.stepId,
+      tool: step.tool,
+      resourceId: step.resourceId,
+      expectedVersion: step.expectedVersion,
+    }));
+  const remainingToolCalls =
+    view.authority.maxToolCalls - view.run.toolCallCount;
+  if (remainingToolCalls < remainingSteps.length + 1) return undefined;
+
+  const envelope = {
+    schemaVersion: "counterstep.adk-continuation.v1",
+    runId: view.run.runId,
+    activePlanId: activePlan.planId,
+    runStatus: view.run.status,
+    counters: {
+      toolCallsUsed: view.run.toolCallCount,
+      toolCallsRemaining: remainingToolCalls,
+      writesUsed: view.run.writeCount,
+      maxWrites: view.authority.maxWrites,
+      replansUsed: view.run.replanCount,
+      replacementPlanAvailable: view.run.replanCount === 0,
+    },
+    completedStepIds: [...completedStepIds].sort(),
+    remainingSteps,
+    requiredFinalCall: {
+      tool: "verify_closure",
+      planId: activePlan.planId,
+    },
+  };
+  return `A prior ADK invocation for this same run ended naturally before Counterstep reached a terminal closure. This is the only bounded continuation.
+
+Resume the existing approved plan; do not create or submit another plan unless a newly attempted remaining write returns stale_revision and the original bounded replacement-plan procedure permits it. Never repeat a completed step. Execute only the exact remaining steps below, in order, using their exact arguments. Then call verify_closure with the exact active planId. Do not stop after a successful write.
+
+The deterministic gate and transactional tools remain authoritative. If any tool rejects an action, obey that result and do not route around it. Missing fields remain unknown.
+
+Continuation envelope:
+${JSON.stringify(envelope)}`;
+}
+
+async function invokeAdk(input: {
+  runner: InMemoryRunner;
+  userId: string;
+  sessionId: string;
+  message: string;
+  maxLlmCalls: number;
+  abortSignal: AbortSignal;
+}): Promise<void> {
+  const stream = input.runner.runAsync({
+    userId: input.userId,
+    sessionId: input.sessionId,
+    newMessage: {
+      role: "user",
+      parts: [{ text: input.message }],
+    },
+    runConfig: {
+      maxLlmCalls: input.maxLlmCalls,
+    },
+    abortSignal: input.abortSignal,
+  });
+  for await (const event of stream as AsyncGenerator<Event>) {
+    // ADK events are persisted in its ephemeral session. Counterstep persists
+    // only validated domain tool events, so model narration cannot become proof.
+    void event;
+  }
+}
+
 export async function runGeminiRecovery(input: {
   service: CounterstepService;
   runId: string;
   modelId: string;
   timeoutMs?: number;
+  invokeAdk?: AdkInvocation;
 }): Promise<PublicRunView> {
   const run = await input.service.repository.getRun(input.runId);
   const authority = await input.service.repository.getAuthority(input.runId);
@@ -200,63 +365,60 @@ export async function runGeminiRecovery(input: {
     userId,
     sessionId,
   });
-  const controller = new AbortController();
-  const timeout = setTimeout(
-    () => controller.abort(new Error("Counterstep agent timeout.")),
-    input.timeoutMs ?? 30_000,
-  );
-  try {
-    const stream = runner.runAsync({
-      userId,
-      sessionId,
-      newMessage: {
-        role: "user",
-        parts: [
-          {
-            text: `Start the bounded remediation run ${input.runId}. Execute the required tool sequence now.`,
-          },
-        ],
-      },
-      runConfig: {
-        maxLlmCalls: 8,
-      },
-      abortSignal: controller.signal,
-    });
-    for await (const event of stream as AsyncGenerator<Event>) {
-      // ADK events are persisted in its ephemeral session. Counterstep persists
-      // only validated domain tool events, so model narration cannot become proof.
-      void event;
+  const invoke = input.invokeAdk ?? invokeAdk;
+  const invokeWithTimeout = async (message: string, maxLlmCalls: number) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(new Error("Counterstep agent timeout.")),
+      input.timeoutMs ?? 30_000,
+    );
+    try {
+      await invoke({
+        runner,
+        userId,
+        sessionId,
+        message,
+        maxLlmCalls,
+        abortSignal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeout);
     }
-    const completed = await input.service.getRunView(input.runId);
+  };
+  try {
+    await invokeWithTimeout(
+      `Start the bounded remediation run ${input.runId}. Execute the required tool sequence now.`,
+      8,
+    );
+    let completed = await input.service.getRunView(input.runId);
     if (!completed) throw new Error("Run disappeared after agent execution.");
-    if (
-      new Set([
-        "repaired",
-        "partially_repaired",
-        "blocked",
-        "unable_to_verify",
-        "failed",
-      ]).has(completed.run.status)
-    ) {
+    if (TERMINAL_RUN_STATUSES.has(completed.run.status)) {
       return completed;
     }
-    await input.service.markIncompleteAgentRun(
-      input.runId,
-      "agent_stopped_without_closure",
-      "The ADK run ended before producing a terminal closure result.",
-    );
+    const continuationMessage = buildBoundedContinuationMessage(completed);
+    if (continuationMessage) {
+      await invokeWithTimeout(continuationMessage, 6);
+      completed = await input.service.getRunView(input.runId);
+      if (!completed) {
+        throw new Error("Run disappeared after bounded continuation.");
+      }
+      if (TERMINAL_RUN_STATUSES.has(completed.run.status)) return completed;
+      await input.service.markIncompleteAgentRun(
+        input.runId,
+        "agent_stopped_after_bounded_continuation",
+        "The ADK run used its one bounded continuation but still ended before producing a terminal closure result.",
+      );
+    } else {
+      await input.service.markIncompleteAgentRun(
+        input.runId,
+        "agent_stopped_without_closure",
+        "The ADK run ended before producing a terminal closure result, and its persisted state was not eligible for bounded continuation.",
+      );
+    }
   } catch (error) {
     const current = await input.service.getRunView(input.runId);
     if (!current) throw error;
-    if (
-      new Set([
-        "repaired",
-        "partially_repaired",
-        "blocked",
-        "unable_to_verify",
-        "failed",
-      ]).has(current.run.status)
-    ) {
+    if (TERMINAL_RUN_STATUSES.has(current.run.status)) {
       return current;
     }
     const detail =
@@ -275,8 +437,6 @@ export async function runGeminiRecovery(input: {
       "agent_execution_failed_after_write",
       detail,
     );
-  } finally {
-    clearTimeout(timeout);
   }
   const finalView = await input.service.getRunView(input.runId);
   if (!finalView) throw new Error("Run disappeared after finalization.");

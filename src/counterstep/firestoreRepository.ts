@@ -11,22 +11,27 @@ import {
   ActionEventSchema,
   AtomicWriteResultSchema,
   ClosureReceiptSchema,
+  COUNTERSTEP_DAILY_RUN_COUNTER_SCHEMA_VERSION,
+  DailyRunCounterSchema,
   DemoRecordSchema,
   InspectionRecordSchema,
   PlanDecisionSchema,
   RecoveryPlanSchema,
   RemediationAuthoritySchema,
   RemediationRunSchema,
+  RunExecutionAdmissionSchema,
   SandboxResourceSchema,
   type ActionEvent,
   type AtomicWriteResult,
   type ClosureReceipt,
+  type DailyRunCounter,
   type DemoRecord,
   type InspectionRecord,
   type PlanDecision,
   type RecoveryPlan,
   type RemediationAuthority,
   type RemediationRun,
+  type RunExecutionAdmission,
   type SandboxResource,
 } from "./schemas";
 
@@ -177,19 +182,43 @@ export class FirestoreCounterstepRepository
     );
   }
 
-  async claimRunForExecution(runId: string): Promise<boolean> {
+  async claimRunForExecution(
+    runId: string,
+    admission: RunExecutionAdmission,
+  ) {
+    const parsedAdmission = RunExecutionAdmissionSchema.parse(admission);
     return this.db.runTransaction(async (transaction) => {
       const runRef = this.runRef(runId);
-      const snapshot = await transaction.get(runRef);
-      if (!snapshot.exists) return false;
-      const run = RemediationRunSchema.parse(snapshot.data());
-      if (run.status !== "created") return false;
+      const limitRef = this.dailyLimitRef(parsedAdmission.dateKey);
+      const [runSnapshot, limitSnapshot] = await Promise.all([
+        transaction.get(runRef),
+        transaction.get(limitRef),
+      ]);
+      if (!runSnapshot.exists) return "already_started" as const;
+      const run = RemediationRunSchema.parse(runSnapshot.data());
+      if (run.status !== "created") return "already_started" as const;
+      const current = parseOptional(
+        limitSnapshot.exists,
+        limitSnapshot.data(),
+        (value) => DailyRunCounterSchema.parse(value),
+      );
+      if ((current?.count ?? 0) >= parsedAdmission.maxRuns) {
+        return "daily_limit_exceeded" as const;
+      }
       transaction.set(
         runRef,
         RemediationRunSchema.parse({ ...run, status: "inspecting" }),
         { merge: false },
       );
-      return true;
+      const nextCounter: DailyRunCounter = DailyRunCounterSchema.parse({
+        schemaVersion: COUNTERSTEP_DAILY_RUN_COUNTER_SCHEMA_VERSION,
+        dateKey: parsedAdmission.dateKey,
+        count: (current?.count ?? 0) + 1,
+        configuredLimit: parsedAdmission.maxRuns,
+        updatedAt: parsedAdmission.timestamp,
+      });
+      transaction.set(limitRef, nextCounter, { merge: false });
+      return "claimed" as const;
     });
   }
 
@@ -535,5 +564,9 @@ export class FirestoreCounterstepRepository
     return this.runRef(runId)
       .collection("idempotency")
       .doc(digestText(rawKey));
+  }
+
+  private dailyLimitRef(dateKey: string) {
+    return this.db.collection("counterstepLimits").doc(dateKey);
   }
 }

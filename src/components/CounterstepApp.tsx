@@ -1,13 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { z, type ZodType } from "zod";
 
-import type {
-  ActionEvent,
-  PublicDemoView,
-  PublicRunView,
-  SandboxResource,
+import {
+  HealthResponseSchema,
+  PublicDemoViewSchema,
+  PublicRunViewSchema,
+  type HealthResponse,
+  type ActionEvent,
+  type PublicDemoView,
+  type PublicRunView,
+  type SandboxResource,
 } from "@/counterstep/schemas";
+import {
+  buildRecoveryProgress,
+  getRecoveryAnnouncement,
+  getTerminalRunNotice,
+} from "@/ui/counterstepView";
 
 const TERMINAL = new Set([
   "repaired",
@@ -17,13 +27,32 @@ const TERMINAL = new Set([
   "failed",
 ]);
 
-type ApiErrorPayload = {
-  error?: { code?: string; message?: string };
-};
+const ApiErrorPayloadSchema = z
+  .object({
+    error: z
+      .object({
+        code: z.string().optional(),
+        message: z.string().optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
+function errorMessage(cause: unknown, fallback: string): string {
+  if (
+    cause instanceof TypeError &&
+    /fetch|network|load failed/i.test(cause.message)
+  ) {
+    return `${fallback} Counterstep could not reach the service. The current evidence was left unchanged; try again when the service is available.`;
+  }
+  return cause instanceof Error && cause.message ? cause.message : fallback;
+}
 
 async function requestJson<T>(
   url: string,
+  schema: ZodType<T>,
   options?: RequestInit,
+  acceptErrorStatus = false,
 ): Promise<T> {
   const response = await fetch(url, {
     ...options,
@@ -33,13 +62,31 @@ async function requestJson<T>(
     },
     cache: "no-store",
   });
-  const payload = (await response.json()) as T & ApiErrorPayload;
-  if (!response.ok) {
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
     throw new Error(
-      payload.error?.message || `Counterstep request failed (${response.status}).`,
+      response.ok
+        ? "Counterstep received a response that did not match its JSON boundary."
+        : `Counterstep request failed (${response.status}).`,
     );
   }
-  return payload;
+  if (!response.ok && !acceptErrorStatus) {
+    const apiError = ApiErrorPayloadSchema.safeParse(payload);
+    throw new Error(
+      apiError.success && apiError.data.error.message
+        ? apiError.data.error.message
+        : `Counterstep request failed (${response.status}).`,
+    );
+  }
+  const parsed = schema.safeParse(payload);
+  if (!parsed.success) {
+    throw new Error(
+      "Counterstep received a response that did not match its strict client contract.",
+    );
+  }
+  return parsed.data;
 }
 
 function shortId(value: string, length = 12): string {
@@ -75,6 +122,7 @@ function eventLabel(event: ActionEvent): string {
 export function CounterstepApp() {
   const [demo, setDemo] = useState<PublicDemoView | null>(null);
   const [run, setRun] = useState<PublicRunView | null>(null);
+  const [health, setHealth] = useState<HealthResponse | null>(null);
   const [resetting, setResetting] = useState(true);
   const [executing, setExecuting] = useState(false);
   const [error, setError] = useState("");
@@ -85,16 +133,18 @@ export function CounterstepApp() {
     setResetting(true);
     setError("");
     try {
-      const next = await requestJson<PublicDemoView>("/api/demo/reset", {
-        method: "POST",
-        body: "{}",
-      });
+      const next = await requestJson(
+        "/api/demo/reset",
+        PublicDemoViewSchema,
+        {
+          method: "POST",
+          body: "{}",
+        },
+      );
       setDemo(next);
       setRun(null);
     } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "The demo could not be reset.",
-      );
+      setError(errorMessage(cause, "The demo could not be reset."));
     } finally {
       setResetting(false);
     }
@@ -103,22 +153,25 @@ export function CounterstepApp() {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      try {
-        const next = await requestJson<PublicDemoView>("/api/demo/reset", {
+      const [demoResult, healthResult] = await Promise.allSettled([
+        requestJson("/api/demo/reset", PublicDemoViewSchema, {
           method: "POST",
           body: "{}",
-        });
-        if (!cancelled) setDemo(next);
-      } catch (cause) {
-        if (!cancelled) {
+        }),
+        requestJson("/api/health", HealthResponseSchema, undefined, true),
+      ]);
+      if (!cancelled) {
+        if (demoResult.status === "fulfilled") {
+          setDemo(demoResult.value);
+        } else {
           setError(
-            cause instanceof Error
-              ? cause.message
-              : "The demo could not be loaded.",
+            errorMessage(demoResult.reason, "The demo could not be loaded."),
           );
         }
-      } finally {
-        if (!cancelled) setResetting(false);
+        if (healthResult.status === "fulfilled") {
+          setHealth(healthResult.value);
+        }
+        setResetting(false);
       }
     })();
     return () => {
@@ -131,17 +184,17 @@ export function CounterstepApp() {
     let cancelled = false;
     const poll = async () => {
       try {
-        const latest = await requestJson<PublicRunView>(
+        const latest = await requestJson(
           `/api/remediation-runs/${encodeURIComponent(activeRunId)}`,
+          PublicRunViewSchema,
         );
-        if (!cancelled) setRun(latest);
+        if (!cancelled) {
+          setRun(latest);
+          setError("");
+        }
       } catch (cause) {
         if (!cancelled) {
-          setError(
-            cause instanceof Error
-              ? cause.message
-              : "The action ledger could not be refreshed.",
-          );
+          setError(errorMessage(cause, "The action ledger could not be refreshed."));
         }
       }
     };
@@ -157,8 +210,9 @@ export function CounterstepApp() {
     setExecuting(true);
     setError("");
     try {
-      const created = await requestJson<PublicRunView>(
+      const created = await requestJson(
         "/api/remediation-runs",
+        PublicRunViewSchema,
         {
           method: "POST",
           body: JSON.stringify({
@@ -168,15 +222,14 @@ export function CounterstepApp() {
         },
       );
       setRun(created);
-      const completed = await requestJson<PublicRunView>(
+      const completed = await requestJson(
         `/api/remediation-runs/${encodeURIComponent(created.run.runId)}/execute`,
+        PublicRunViewSchema,
         { method: "POST", body: "{}" },
       );
       setRun(completed);
     } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "The recovery run stopped.",
-      );
+      setError(errorMessage(cause, "The recovery run stopped."));
     } finally {
       setExecuting(false);
     }
@@ -187,6 +240,27 @@ export function CounterstepApp() {
     [run],
   );
   const outcome = run?.closure?.outcome ?? run?.run.status;
+  const progress = useMemo(
+    () =>
+      buildRecoveryProgress({
+        status: run?.run.status,
+        events: run?.events,
+        hasClosure: Boolean(run?.closure),
+      }),
+    [run],
+  );
+  const announcement = useMemo(
+    () =>
+      getRecoveryAnnouncement({
+        demoReady: Boolean(demo),
+        error: error || undefined,
+        executing,
+        resetting,
+        run: run ?? undefined,
+      }),
+    [demo, error, executing, resetting, run],
+  );
+  const terminalNotice = useMemo(() => getTerminalRunNotice(run), [run]);
   const actionLabel = executing
     ? `Running · ${run?.run.status.replaceAll("_", " ") ?? "starting"}`
     : run && TERMINAL.has(run.run.status)
@@ -194,7 +268,15 @@ export function CounterstepApp() {
       : "Run Counterstep";
 
   return (
-    <main className="cs-shell">
+    <main id="top" className="cs-shell">
+      <p
+        className="cs-sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {announcement}
+      </p>
       <header className="cs-masthead">
         <a className="cs-brand" href="#top" aria-label="Counterstep home">
           <span className="cs-brand-mark" aria-hidden="true">CS</span>
@@ -204,7 +286,7 @@ export function CounterstepApp() {
         <span className="cs-build">BASE / 0.1</span>
       </header>
 
-      <div id="top" className="cs-hero">
+      <div className="cs-hero">
         <section className="cs-hero-copy" aria-labelledby="cs-title">
           <p className="cs-eyebrow">The action happened. Now close the loop.</p>
           <h1 id="cs-title">From agent overstep<br />to verified counterstep.</h1>
@@ -225,16 +307,23 @@ export function CounterstepApp() {
         </aside>
       </div>
 
-      <section className="cs-command" aria-label="Recovery controls">
+      <section
+        className="cs-command"
+        aria-label="Recovery controls"
+        aria-busy={executing || resetting}
+      >
         <div>
           <span className="cs-label">Bounded recovery</span>
-          <p>Two resources · two permitted writes · final verification required</p>
+          <p id="cs-recovery-limit">
+            Two resources · two permitted writes · final verification required
+          </p>
         </div>
         <button
           className="cs-primary"
           type="button"
           onClick={() => void runCounterstep()}
           disabled={!demo || executing || resetting}
+          aria-describedby="cs-recovery-limit"
         >
           <span aria-hidden="true">→</span> {actionLabel}
         </button>
@@ -250,8 +339,35 @@ export function CounterstepApp() {
 
       {error ? (
         <div className="cs-error" role="alert">
-          <strong>Run notice</strong><span>{error}</span>
+          <strong>Request needs attention</strong>
+          <span>{error}</span>
         </div>
+      ) : null}
+
+      {terminalNotice && run ? (
+        <section
+          className={`cs-run-result cs-run-result-${terminalNotice.tone}`}
+          aria-labelledby="cs-run-result-title"
+        >
+          <div>
+            <span>{terminalNotice.eyebrow}</span>
+            <h2 id="cs-run-result-title">{terminalNotice.title}</h2>
+            <p>{terminalNotice.detail}</p>
+          </div>
+          <dl>
+            <div><dt>Writes</dt><dd>{run.run.writeCount} / {run.authority.maxWrites}</dd></div>
+            <div><dt>Tool calls</dt><dd>{run.run.toolCallCount} / {run.authority.maxToolCalls}</dd></div>
+            <div><dt>Recorded events</dt><dd>{run.events.length}</dd></div>
+          </dl>
+          <div className="cs-run-result-action">
+            <a href={terminalNotice.evidenceHref}>
+              {terminalNotice.evidenceLabel} <span aria-hidden="true">↓</span>
+            </a>
+            {run.run.terminalReasonCode ? (
+              <code>{run.run.terminalReasonCode}</code>
+            ) : null}
+          </div>
+        </section>
       ) : null}
 
       <section className="cs-section cs-source" aria-labelledby="source-title">
@@ -312,14 +428,84 @@ export function CounterstepApp() {
         </div>
       </section>
 
-      <section className="cs-section cs-ledger" aria-labelledby="ledger-title">
+      <section
+        className="cs-section cs-ledger"
+        aria-labelledby="ledger-title"
+        aria-busy={executing}
+      >
         <header className="cs-section-head">
           <span className="cs-index">03</span>
           <div><p>Agent action ledger</p><h2 id="ledger-title">Inspect → gate → repair → verify</h2></div>
-          <span className={`cs-status cs-status-${outcome ?? "idle"}`} aria-live="polite">
+          <span className={`cs-status cs-status-${outcome ?? "idle"}`}>
             {(outcome ?? "ready").replaceAll("_", " ")}
           </span>
         </header>
+        <ol className="cs-phases" aria-label="Recovery phase progress">
+          {progress.map((phase, index) => (
+            <li
+              key={phase.key}
+              className={`cs-phase cs-phase-${phase.state}`}
+              aria-current={phase.state === "active" ? "step" : undefined}
+            >
+              <span className="cs-phase-index" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <div>
+                <strong>{phase.label}</strong>
+                <p>{phase.detail}</p>
+              </div>
+              <small>
+                {phase.state === "complete"
+                  ? "Complete"
+                  : phase.state === "active"
+                    ? "In progress"
+                    : phase.state === "stopped"
+                      ? "Stopped here"
+                      : "Not started"}
+              </small>
+            </li>
+          ))}
+        </ol>
+        <dl className="cs-provenance" aria-label="Runtime provenance">
+          <div>
+            <dt>Deployment</dt>
+            <dd>
+              {health
+                ? health.deployment === "cloud-run"
+                  ? "Cloud Run"
+                  : "Local runtime"
+                : "Unavailable"}
+            </dd>
+          </div>
+          <div>
+            <dt>Persistence</dt>
+            <dd>
+              {health
+                ? `${health.repository === "firestore" ? "Firestore" : "Memory sandbox"} · ${health.repositoryReachable ? "reachable" : "unreachable"}`
+                : "Unavailable"}
+            </dd>
+          </div>
+          <div>
+            <dt>Orchestration</dt>
+            <dd>Google ADK · TypeScript</dd>
+          </div>
+          <div>
+            <dt>Execution path</dt>
+            <dd>
+              {run
+                ? run.run.generationSource === "deterministic_fixture"
+                  ? "Deterministic fixture"
+                  : run.run.generationSource === "deterministic_no_execution"
+                    ? "No model execution"
+                    : run.run.modelId ?? "Gemini"
+                : health
+                  ? health.agentMode === "gemini"
+                    ? health.modelId
+                    : health.agentMode.replaceAll("_", " ")
+                  : "Unavailable"}
+            </dd>
+          </div>
+        </dl>
         {run?.events.length ? (
           <ol className="cs-timeline">
             {run.events.map((event) => (
@@ -331,6 +517,7 @@ export function CounterstepApp() {
                 </div>
                 <p>{event.detail}</p>
                 <div className="cs-event-proof">
+                  <span>{event.status}</span>
                   <code>#{event.sequence} · {event.resultCode}</code>
                   {event.beforeVersion !== undefined ? (
                     <span>v{event.beforeVersion} → v{event.afterVersion}</span>
