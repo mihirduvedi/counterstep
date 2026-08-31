@@ -6,7 +6,7 @@ The demo starts with an [Agent Receipt](./ORIGIN_AND_REUSE.md) for a synthetic c
 
 This is an action system, not a chat interface. The model can decide which allowed repair is still needed. It cannot grant itself authority or turn its own narration into proof.
 
-**Public synthetic demo:** https://counterstep-27573808078.us-central1.run.app — deterministic fixture mode with in-memory state; it cannot invoke Gemini or managed Firestore
+**Public interactive demo:** https://counterstep-27573808078.us-central1.run.app — each **Run Counterstep** action executes the real server-side recovery workflow on Cloud Run with a deterministic planner and in-memory synthetic state; it cannot invoke Gemini or managed Firestore, and Cloud Run has a configured $1 monthly spend cap
 
 **Submission video:** [watch the 2:57 demo](https://youtu.be/8Bh8_6sFMNc)
 
@@ -28,7 +28,7 @@ This is an action system, not a chat interface. The model can decide which allow
 
 1. Open the public synthetic demo and read the four predeclared contracts in the **Recovery Test Rack**.
 2. Choose **E4 Stale-state replan**. It is the shortest view of Counterstep's main technical claim: a write becomes stale after inspection, the version check refuses it, both governed resources are re-inspected, and one replacement plan is admitted.
-3. Press **Run Counterstep** once and leave the page open. The public host runs the clearly labeled deterministic fixture against in-memory synthetic state, so judge traffic cannot consume Gemini or Firestore quota. The submission video and evidence record preserve the completed live Gemini/Google ADK/Vertex AI/Firestore journeys.
+3. Press **Run Counterstep** once and leave the page open. This is a real server-executed recovery journey through the shared gate, tools, state transitions, event ledger, scenario assessor, and closure logic. Its planner and persistence are the clearly labeled deterministic fixture and in-memory synthetic sandbox, so judge traffic cannot consume Gemini or Firestore quota. The submission video and evidence record preserve the completed live Gemini/Google ADK/Vertex AI/Firestore journeys.
 4. At the terminal state, check **Contract matched**, the failed `stale_revision` event, two approved plans, two authorized writes, 20/20 accounted events, and the closure digest.
 
 The selected condition and its expected outcome are visible before execution. Counterstep does not grade itself from UI state; server-owned deterministic code computes the five observed measurements and the closure outcome.
@@ -271,6 +271,8 @@ The cloud smoke check requires Cloud Run identity, reachable Firestore, configur
 
 `Dockerfile` builds the Next.js standalone server and copies only the generated standalone and static outputs; this repository currently has no `public/` asset directory. `cloudbuild.yaml` builds and pushes the image with the dedicated `counterstep-build` identity, then deploys a safe public fixture with the separate `counterstep-runtime` service identity. The default deployment pins `COUNTERSTEP_AGENT_MODE=fixture` and `COUNTERSTEP_REPOSITORY=memory`; it contains no Gemini, Vertex AI, or Firestore runtime configuration. The runtime identity has no Vertex AI or Firestore data role. The locked public envelope is request-based CPU with startup boost disabled, both service- and revision-level scaling fixed at zero minimum and one maximum instance, concurrency 1, no session affinity, 1 vCPU, 512 MiB, a 30-second request timeout, and a 10-run UTC daily cap.
 
+The signed-in Cloud Billing dashboard was rechecked on August 31, 2026. Project-and-service-scoped monthly spend caps of `$1` are `Configured` independently for Cloud Run, Gemini API, and Vertex AI; a separate project-wide `$1` budget remains alerts-only. Google documents spend caps as a Preview control with possible reporting and enforcement latency, so they are a strong final guardrail rather than a literal zero-overage guarantee. The current public runtime's missing model/database configuration and removed IAM roles remain the primary protections against judge traffic consuming managed AI or Firestore quota.
+
 Before deployment, explicitly choose a Google Cloud project, enable billing and the required Cloud Run, Cloud Build, Artifact Registry, and IAM APIs, create the `counterstep` Artifact Registry repository, and create isolated `counterstep-build` and `counterstep-runtime` service accounts with least-privilege permissions. The full read-only preflight below also checks the Vertex AI and Firestore resources retained for reproducing the separate live-evidence path:
 
 ```bash
@@ -328,6 +330,7 @@ Confirmed through August 31, 2026:
 - exact-source Cloud Build `e734fe09-5e29-41cc-a6fd-310ab8f186c3` succeeded from release commit `5890e2b09049564130428f3d6cc4a768b221b180`;
 - exact-source live-evidence revision `counterstep-00005-nft` passed its public Vertex/Firestore health contract from image digest `sha256:766f1d07da7cb4f853638c93659a995926a7a8eadc6eec56ceb67d19efaa42c4`;
 - current public revision `counterstep-00006-6nd` serves the same source-bound image at 100% traffic in `fixture` / `memory` mode with Gemini unconfigured, a 30-second timeout, min 0 / max 1, request-only CPU, and no Vertex AI or Firestore data role on the runtime identity;
+- the signed-in billing dashboard reports `Configured` `$1` monthly spend caps for Cloud Run, Gemini API, and Vertex AI, in addition to the project-wide `$1` alerts-only budget;
 - GitHub Actions run [`33368011137`](https://github.com/mihirduvedi/counterstep/actions/runs/33368011137) passed on the exact release commit;
 - two strict deployed smoke journeys and one continuous browser journey passed on the immediately preceding equivalent Vertex/Firestore revision with Gemini 3.5 Flash Lite through Google ADK; the exact-source replacement revision then passed its public health contract without spending another model run;
 - the closure download fires, reset/repeat succeeds, and the browser console is clean;

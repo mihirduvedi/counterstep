@@ -2,7 +2,7 @@
 
 Counterstep is a post-run recovery agent for a completed AI-agent workflow that exceeded authority. It inspects the current state, uses Gemini through Google ADK to choose a bounded plan, admits only deterministic version-pinned actions, and issues a closure receipt from fresh snapshots.
 
-**Public synthetic demo:** <https://counterstep-27573808078.us-central1.run.app> · deterministic fixture, in-memory state, no Gemini or Firestore quota
+**Public interactive demo:** <https://counterstep-27573808078.us-central1.run.app> · real server-side Cloud Run execution with a deterministic planner and in-memory synthetic state; no Gemini or Firestore quota
 
 **Repository:** <https://github.com/mihirduvedi/counterstep>
 
@@ -27,7 +27,7 @@ E4 is the most compact proof of the architecture. The repository injects one dis
 4. Read the deterministic plan-gate result, 12/12 event accounting, action verdict, final goal statuses, and closure SHA-256.
 5. Switch to **E3 Irreversible delivery**. The declared outcome is `partially_repaired`: Counterstep revokes spreadsheet access but does not claim it recalled a message that was already delivered.
 
-The public service has a small daily admission cap and intentionally runs the deterministic fixture against in-memory synthetic state. Its runtime has no Vertex AI or Firestore data role. The [demo video](SUBMISSION.md#links) and exact evidence record preserve the completed live Gemini/ADK/Vertex/Firestore proof.
+The public service has a small daily admission cap and intentionally runs the deterministic fixture against in-memory synthetic state. Every **Run Counterstep** action still executes the shared server-side gate, tools, versioned transitions, event accounting, scenario assessor, and closure logic. Its runtime has no Vertex AI or Firestore data role, and Cloud Run has a configured `$1` monthly spend cap. The [demo video](SUBMISSION.md#links) and exact evidence record preserve the completed live Gemini/ADK/Vertex/Firestore proof.
 
 ## What to look for
 
@@ -67,7 +67,7 @@ exact Agent Receipt
 |---|---|
 | Innovation and Operational Utility | One start action repairs reversible consequences of a completed agent overstep. E2 proves restraint, E3 stops at an irreversible boundary, and E4 handles stale state without overwriting it. |
 | Architectural Discipline and Tech Stack | Gemini 3.5 Flash Lite through Google ADK on Vertex AI; deterministic authority and closure; strict Zod boundaries; transactional Firestore persistence; exact versions and idempotency; fail-closed execution; separate workload identities. |
-| Demo and Production Readiness | Public quota-isolated Cloud Run fixture, separately retained live Gemini/ADK and managed Firestore evidence, exact-source Cloud Build and CI, a four-case test rack, a README architecture diagram, local reproduction paths, and a release/privacy audit. |
+| Demo and Production Readiness | Public quota-isolated Cloud Run fixture with a configured `$1` service spend cap, separately retained live Gemini/ADK and managed Firestore evidence, exact-source Cloud Build and CI, a four-case test rack, a README architecture diagram, local reproduction paths, and a release/privacy audit. |
 
 ## Reproduce it locally
 

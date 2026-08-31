@@ -56,7 +56,7 @@ That scenario result is separate from closure. E3 can match its contract and sti
 
 Counterstep runs as one strict TypeScript application on Cloud Run. The public browser uses Next.js server routes. Google ADK binds Gemini function tools to the active run. Firestore stores synthetic demos, resource versions, inspections, approved plans, event ledgers, idempotency records, admission counters, and closure receipts.
 
-The recorded live-evidence service used separate build and runtime service accounts. That revision reached Vertex AI and Firestore through workload identity and contained no Gemini API key. After the live proof and video were captured, the public service was switched to deterministic fixture mode with in-memory state and the runtime identity's Vertex AI and Firestore roles were removed. Minimum instances remain zero, maximum instances one, request concurrency one, and an application counter admits at most ten runs per UTC day.
+The recorded live-evidence service used separate build and runtime service accounts. That revision reached Vertex AI and Firestore through workload identity and contained no Gemini API key. After the live proof and video were captured, the public service was switched to deterministic fixture mode with in-memory state and the runtime identity's Vertex AI and Firestore roles were removed. A judge's **Run Counterstep** action still executes the real server-side recovery workflow; only the planner and persistence backends are deterministic. Minimum instances remain zero, maximum instances one, request concurrency one, an application counter admits at most ten runs per UTC day, and Cloud Run has a configured `$1` monthly spend cap.
 
 The first cloud attempt did not work. The Developer API backend returned HTTP 429 because its separate prepaid credits were depleted. Counterstep ended that run with zero tool calls and zero writes. I did not add a simulated success path or buy more credits. I moved the deployment to the allowed Vertex AI backend, verified the workload-identity path, and ran the strict smoke journey again.
 
@@ -84,6 +84,6 @@ The model handles the part that benefits from reasoning. Deterministic code hand
 
 Project: <https://github.com/mihirduvedi/counterstep>
 
-Public synthetic demo: <https://counterstep-27573808078.us-central1.run.app> (quota-isolated fixture; live-model proof is retained in the video and evidence record)
+Public interactive demo: <https://counterstep-27573808078.us-central1.run.app> (real Cloud Run execution with a quota-isolated fixture and configured `$1` Cloud Run spend cap; live-model proof is retained in the video and evidence record)
 
 Submission video: <https://youtu.be/8Bh8_6sFMNc>

@@ -43,7 +43,7 @@ Counterstep is a strict TypeScript application on Next.js 16.3.3. The browser ta
 
 Gemini receives minimized incident facts and inspected sandbox state. It can choose and sequence a recovery, but deterministic code owns policy evaluation, plan admission, write authority, stale-version handling, the action-receipt verdict, and the closure outcome.
 
-Firestore persisted the recorded live-evidence demos, resource versions, approved plans, event ledgers, idempotency records, daily admission counters, and closure receipts. That revision used Vertex AI and Firestore through separate workload identities and contained no Gemini API key. The current public revision is the same application image in deterministic fixture/memory mode.
+Firestore persisted the recorded live-evidence demos, resource versions, approved plans, event ledgers, idempotency records, daily admission counters, and closure receipts. That revision used Vertex AI and Firestore through separate workload identities and contained no Gemini API key. The current public revision is the same application image in deterministic fixture/memory mode. A judge's **Run Counterstep** action still executes the real server-side recovery workflow on Cloud Run; only the planner and persistence backends are replaced with deterministic, synthetic counterparts.
 
 The repository includes a credential-free fixture mode, deterministic evaluation cases, a production Firestore adapter suite against the official local emulator, an opt-in retained-write managed Firestore harness, strict cloud smoke checks, and a release/privacy audit.
 
@@ -104,7 +104,7 @@ Counterstep is a new remediation layer built during the hackathon on a disclosed
 3. Press **Run Counterstep** once and wait for the terminal state.
 4. Confirm `Contract matched`, one failed `stale_revision` write, two approved plans, two successful remediation writes, 10 tool calls, 20/20 accounted events, and a digest-bearing `repaired` closure.
 
-The public service is a deterministic in-memory fixture with a small daily run cap. It exercises the same gate, tools, event accounting, scenario assessor, and closure contracts without invoking Gemini or Firestore. The video and repository evidence remain the authoritative live-model and managed-service proof.
+The public service is a deterministic in-memory fixture with a small daily run cap and a configured `$1` monthly Cloud Run spend cap. It executes the same server-side gate, tools, versioned state transitions, event accounting, scenario assessor, and closure contracts without invoking Gemini or Firestore. The video and repository evidence remain the authoritative live-model and managed-service proof.
 
 ### Credential-free local path
 
@@ -134,7 +134,7 @@ npm run test:firestore
 
 ## Links
 
-- Public synthetic demo: <https://counterstep-27573808078.us-central1.run.app> (`fixture` / `memory`; no Gemini or Firestore quota)
+- Public interactive demo: <https://counterstep-27573808078.us-central1.run.app> (real Cloud Run execution; deterministic `fixture` / `memory`; no Gemini or Firestore quota; configured `$1` Cloud Run spend cap)
 - Repository: <https://github.com/mihirduvedi/counterstep>
 - Demo video, four minutes maximum: <https://youtu.be/8Bh8_6sFMNc> (signed-out playback, embedding, duration, and English captions verified August 31, 2026)
 - Team members: Mihir Duvedi

@@ -12,7 +12,7 @@ Evidence snapshot: August 31, 2026. This ledger separates repository checks, emu
 | Live-evidence Cloud Run revision | `counterstep-00005-nft` | Historical exact-source Vertex/Firestore health proof |
 | Current public Cloud Run revision | `counterstep-00006-6nd` | Ready, 100% traffic; fixture/memory, Gemini unconfigured |
 | Image digest | `sha256:766f1d07da7cb4f853638c93659a995926a7a8eadc6eec56ceb67d19efaa42c4` | Bound to the exact-source build |
-| Public synthetic demo | <https://counterstep-27573808078.us-central1.run.app> | HTTP 200; fixture/memory; no Gemini or managed Firestore access |
+| Public interactive demo | <https://counterstep-27573808078.us-central1.run.app> | HTTP 200; real server-side fixture/memory execution; no Gemini or managed Firestore access |
 
 ## Repository gate
 
@@ -76,6 +76,7 @@ Fixture mode proves the visible deterministic journey and shared gate/tool/closu
 - Current public revision `counterstep-00006-6nd` reuses the exact image and returns HTTP 200 with `memory`, `fixture`, `geminiConfigured: false`, and `modelBackend: unconfigured`.
 - A signed-out public E1 fixture run reached `repaired` with two synthetic writes, 12 events, one approved plan, six tool calls, and an exact scenario match; `modelId` was absent.
 - The runtime service account has no Vertex AI or Firestore data role. The service remains min zero / max one with request-based CPU, concurrency one, a 30-second request timeout, and a 10-run UTC daily application cap.
+- The signed-in billing dashboard reports `Configured` project-and-service-scoped `$1` monthly spend caps for Cloud Run, Gemini API, and Vertex AI. The separate project-wide `$1` budget is alerts-only. Spend-cap enforcement can lag, so runtime isolation and scaling bounds remain independent protections.
 
 Run IDs, digests, source archives, service controls, and screenshot hashes are in [GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md](GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md).
 
@@ -97,7 +98,7 @@ Completed:
 
 | Target | Result | Action |
 |---|---|---|
-| Public Cloud Run demo | HTTP 200; fixture/memory runtime | Ready without model/database quota |
+| Public Cloud Run demo | HTTP 200; real server-side fixture/memory runtime; `$1` Cloud Run spend cap configured | Ready without model/database quota |
 | Public health endpoint | HTTP 200 with Gemini unconfigured and in-memory repository | Ready |
 | GitHub repository | HTTP 200 while signed out; repository is public | Ready |
 | Hosted CI link | Public with repository visibility | Ready |
