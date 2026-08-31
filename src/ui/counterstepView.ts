@@ -4,6 +4,9 @@ import type {
   RemediationRunStatus,
 } from "../counterstep/schemas";
 
+export const COUNTERSTEP_HEADLINE =
+  "From agent overstep to verified counterstep.";
+
 export type RecoveryPhaseKey =
   | "inspecting"
   | "planning"

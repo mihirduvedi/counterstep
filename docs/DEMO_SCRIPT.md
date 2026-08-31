@@ -1,100 +1,87 @@
-# Agent Receipt three-minute judge demo
+# Counterstep four-minute demo
 
-Target length: 2 minutes 58 seconds. Record at 1280 × 720 or higher. Keep the browser zoom at 100%, hide personal bookmarks and notifications, and use only the repository's public example data.
+Target length: 3 minutes 45 seconds. Record at 1920 × 1080 or 1280 × 720, keep browser zoom at 100%, hide personal tabs and notifications, and use only the synthetic Counterstep demo.
+
+The live-action section below is the eligibility proof. Keep it continuous and unedited from the visible `.run.app` address through the terminal closure state.
 
 ## Shot plan and narration
 
-### 0:00–0:16 — The accountability gap
+### 0:00–0:22 · The cleanup gap
 
-**Show:** Landing page and **Upload JSON**.
-
-**Say:**
-
-“An AI agent can report success while leaving its manager with a harder question: did it do only what I authorized? Agent Receipt lets me upload the agent's JSON log and review the completed run against the authority it was given.”
-
-### 0:16–0:42 — Bring a JSON log from another agent
-
-**Show:** Upload `examples/codex-policy-ledger-release-generic-log.json`. Select `/activity_log`, show the discovered paths and value translations, then jump to the completed preview: **Selected 10 · Mapped 10 · Unparsed 0**.
+**Show:** The Counterstep hero and original incident summary.
 
 **Say:**
 
-“This file does not use Agent Receipt's own schema. The live app finds its action array, and I confirm where timestamps, operations, outcomes, actors, systems, and approvals live. The preview accounts for all ten records before review. The mapping stays with the receipt; no model guesses what these fields mean.”
+“An AI agent can finish its task and still leave an operator with risky cleanup. This completed CRM run left restricted data in an externally shared spreadsheet and queued a customer email without approval. Counterstep checks what is true now, repairs only what is still reversible, and proves the final state.”
 
-### 0:42–0:58 — Declare authority and build the receipt
+### 0:22–0:42 · Declare the test before the run
 
-**Show:** Continue to the authority step, point to systems, operations, egress, and approvals, then build the receipt. Land on the clean verdict and ten-of-ten coverage.
-
-**Say:**
-
-“Authority is entered separately; it is never inferred from the log. This uploaded run maps all ten records and stays within the supplied envelope. That is a qualified result based on this file and this authority, not a claim that the exporter captured everything.”
-
-### 0:58–1:24 — The overreaching run
-
-**Show:** Start a new review, select **Overreaching run**, continue, and build. Open **Policy checks**, then land on the verdict and incident brief.
+**Show:** The Recovery Test Rack. Pause on E1, then briefly point to E2, E3, and E4.
 
 **Say:**
 
-“Now the same task includes an external spreadsheet attempt with an unknown outcome, a retry, and an unapproved customer-email send. The ledger shows six deviating checks beside three that produced no finding. Twelve findings become two cited incidents without hiding the full policy record.”
+“Each condition declares its result before execution. Canonical recovery requires two writes. Already-safe state requires zero. Delivered mail must remain unresolved. A stale write must be refused and replanned once. Deterministic code grades these contracts; Gemini does not.”
 
-### 1:24–1:42 — Evidence, not a risk score
+### 0:42–1:45 · Continuous live Cloud Run action
 
-**Show:** Open one incident's evidence, point to the finding, canonical event, and retained raw object, then close the drawer.
+**Show without a cut:**
 
-**Say:**
-
-“This is not an unexplained risk score. Every material claim opens into its deterministic finding, normalized event, and retained source object. Unknown stays unknown, including the first spreadsheet attempt.”
-
-### 1:42–2:00 — Make the model boundary visible
-
-**Show:** Open **AI boundary**, point to the fallback or Granite status, the three deterministic gates, and the omitted-field list. Expand the JSON only if the recording remains readable.
+1. The public `.run.app` URL in the address bar or `/api/health` response.
+2. **E1 Canonical recovery** selected with the expected contract visible.
+3. Click **Run Counterstep** once.
+4. Leave the screen recording continuous while the six phases advance.
+5. At the terminal state, show `Contract matched`, the two resource transitions, 2/2 writes, six tool calls, 12/12 accounted events, `within remediation authority`, both satisfied goals, and the closure digest.
 
 **Say:**
 
-“The interface shows exactly what Granite can receive. Raw event bodies, source pointers, and policy comparison values stay out. Granite may select up to five known finding IDs; deterministic code renders the cited text or falls back safely.”
+“This is the public Cloud Run service. Gemini 3.5 Flash Lite is running through Google ADK on Vertex AI, and Firestore persists the run. Counterstep first inspects exact resource versions. Gemini proposes a cited plan. A deterministic gate checks the resource, transition, citations, versions, and budget before either write can run. Fresh reads, not model narration, decide closure.”
 
-### 2:00–2:15 — Recovery without hidden execution
+When the result appears:
 
-**Show:** Open **Recovery plan**, scan the required-authority and reversibility labels, then use the decision section to download the complete evidence packet.
+“The spreadsheet moved from version three to four with external access revoked. The queued message moved from version one to two and is cancelled. All 12 events are accounted for, both goals are satisfied, and the receipt has a replayable SHA-256 digest.”
 
-**Say:**
+### 1:45–2:20 · Restraint and stale-state recovery
 
-“Agent Receipt proposes cited follow-up steps, but it never executes them. The complete packet includes a Recovery Plan v1 artifact that is citation-closed and SHA-256-bound to this receipt. Current state stays unknown, execution authority was not granted, and approval is required.”
-
-### 2:15–2:33 — Refuse to overclaim
-
-**Show:** Start a new review with **Incomplete OTLP run**, build it, then open **Evidence gaps** and the unparsed source record.
+**Show:** Pre-recorded terminal views or concise callouts for E3 and E4. Do not present edited fixture footage as a live model run; keep the runtime label visible.
 
 **Say:**
 
-“A trustworthy reviewer also needs to know when the evidence is not enough. This OTLP run accounts for all three source spans, but one material action lacks an explicit operation and the run has no terminal status. Agent Receipt refuses a clean or violation verdict, names the evidence needed, and still opens the exact raw-only span.”
+“The happy path is only one condition. E3 repairs the spreadsheet but refuses to describe delivered mail as recalled, so closure is partial. E4 injects a disclosed external version bump after inspection. The write fails with `stale_revision`, both resources are re-inspected, one replacement plan is admitted, and the newer state is never overwritten.”
 
-### 2:33–2:53 — Carry and verify the complete handoff
+### 2:20–3:05 · Architecture and trust boundary
 
-**Show:** Switch to **Verify an export** and choose **Verify evidence packet**. Point to PASS, the three-artifact summary, and the manifest, receipt-replay, and recovery-binding gates.
-
-**Say:**
-
-“One file now carries the manager brief, validated receipt, and cited recovery plan. The browser-only verifier hashes the exact packet, replays all three artifacts, then reruns the receipt and recovery binding. It proves internal consistency, not who created the file or whether the trace was complete.”
-
-### 2:53–2:58 — Close
-
-**Show:** Integrity strip or README architecture section.
+**Show:** The README architecture diagram, then the UI plan-gate and runtime-provenance panels.
 
 **Say:**
 
-“IBM Bob built the trust-critical foundation. Agent Receipt works with the JSON evidence teams already have, shows where that evidence stops, and keeps the complete handoff checkable.”
+“Counterstep begins with an exact Agent Receipt and deterministic findings. Google ADK gives Gemini five narrow tools and minimized inspected state. Gemini chooses a candidate recovery. Deterministic code owns citations, authority, versions, transitions, write budgets, idempotency, the action verdict, and closure. Firestore stores the resource history, approved plans, events, and final receipt. The deployed revision uses separate build and runtime identities with no Gemini API key.”
 
-## Mapping setup before recording
+### 3:05–3:30 · Proof and reuse
 
-Rehearse the generic mapping from `docs/GENERIC_JSON_ADAPTER.md` before recording. Keep the upload and array-selection interaction visible, then use a clean jump cut after enough of the field and value mapping is shown to establish that it is a real workflow. Do not make viewers watch every dropdown. The final preview must visibly report **Selected 10 · Mapped 10 · Unparsed 0**.
+**Show:** The Google Cloud evidence page, exact release SHA, green CI run, and origin/reuse disclosure.
 
-The narration should say that the included file makes the demo reproducible and that another record-oriented exporter follows the same workflow with its own documented paths and values. Do not say “any JSON.” Free-form transcripts, JSONL, binary telemetry, mixed multi-run bundles, and logs without explicit meanings still need preprocessing or a dedicated adapter.
+**Say:**
 
-## Recording checks
+“The exact source release passed 444 tests, five deterministic evaluations, eight production-repository emulator cases, a production build, and release/privacy scans. Managed Firestore passed six retained cases. Three Vertex-backed Gemini and ADK journeys produced digest-valid closures. Counterstep is new hackathon work built on a precisely disclosed Agent Receipt evidence foundation.”
 
-- Keep the final cut at or below three minutes, including title and end cards.
-- Make the pointer movement slow enough to follow and remove dead time from mapping and between review states.
-- Ensure the selected array, 10/10 mapping preview, policy outcome register, evidence drawer, AI boundary labels, Evidence Gap ledger, packet summary, verifier gates, and export status are legible at the uploaded resolution.
-- Do not show `.env.local`, browser autofill, terminal history, account dashboards, private repository controls, or real traces.
-- Add captions and verify them manually against the spoken words.
-- Upload publicly, then test playback and all project links while signed out.
+### 3:30–3:45 · Close
+
+**Show:** The repaired closure and the line `Every overstep gets a counterstep.`
+
+**Say:**
+
+“Observability can tell us an agent overstepped. Counterstep completes the bounded repair and leaves proof another operator can inspect.”
+
+## Capture checklist
+
+- Use the exact public URL <https://counterstep-27573808078.us-central1.run.app>.
+- Check `/api/health` immediately before recording. It must report Cloud Run, reachable Firestore, Vertex AI, Gemini mode, Gemini 3.5 Flash Lite, and Google ADK TypeScript.
+- Reset E1 before the take. Do not burn public runs on repeated rehearsal when fixture mode is enough.
+- Keep the address bar or Cloud Run console proof visible in the continuous segment.
+- Do not cut, speed up, or cover the live-action section. If any timing treatment is used elsewhere, label it.
+- Keep runtime provenance visible when showing fixture footage.
+- Add accurate English captions and review every technical term, count, and digest label.
+- Use no private console identifiers beyond the public project/service evidence already recorded in the repository.
+- Export at or below 4:00. Watch the final file from start to finish before upload.
+- Upload publicly to YouTube or Vimeo, then verify playback and captions while signed out.
+- Paste the final URL into [SUBMISSION.md](SUBMISSION.md#links) and the Devpost form only after the signed-out check.

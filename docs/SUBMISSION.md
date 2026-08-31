@@ -1,82 +1,155 @@
-# Agent Receipt submission copy
+# Counterstep submission copy
 
-This is paste-ready copy for the IBM SkillsBuild AI Builders Challenge with IBM Bob. Replace the video and team placeholders only after checking the final details in a signed-out browser.
+Paste-ready material for the Google All Things Agentic Hackathon. Replace only the bracketed video and team fields after the final signed-out checks.
 
 ## Project title
 
-Agent Receipt
+Counterstep
 
 ## One-line pitch
 
-Upload a completed agent JSON log, declare what the agent was allowed to do, and Agent Receipt produces an evidence-linked receipt for deciding whether to accept, investigate, or reject the run.
+Counterstep safely cleans up after an AI agent overreaches and proves what it repaired.
 
-## Selected theme
+## Category
 
-Wildcard: Build Intelligent Systems for the Future of Work
+Taskmaster
 
-## Problem
+## Short description
 
-AI agents can finish useful work while leaving a manager with an accountability gap. A success message rarely answers which systems the agent touched, whether it used restricted data, whether approval was present, or what happened after an uncertain side effect. Teams often have a JSON export, but a raw log still does not reconcile observed actions with the authority a person actually granted.
+An agent can finish a task and still leave a human operator with dangerous cleanup work. Counterstep starts from an evidence-linked receipt for a completed run, checks what is true now, asks Gemini to choose a bounded recovery plan, and passes every proposed action through deterministic authority and version gates. It applies only approved reversible changes, re-reads the final state, and produces a closure receipt that says exactly what was repaired and what remains unresolved.
 
-## Solution
+## Inspiration
 
-Agent Receipt reviews one completed run from a file the manager uploads or pastes into the live app. Native Trace v1 and the documented OTLP/JSON profile open directly. For another record-oriented JSON structure, the app finds candidate action arrays and asks the reviewer to confirm field paths and observed-value translations. The mapping is previewed and retained with the receipt. It never relies on a model to guess what a vendor-specific field means.
+Agent observability is good at answering “what happened?” It is much less helpful with the next operational question: what can still be undone safely?
 
-After intake, the same pipeline preserves the exact supplied bytes, accounts for every raw event, converts supported records into canonical actions, and compares those actions with a manager-confirmed authority envelope. Deterministic rules produce the findings and verdict. Every material conclusion opens into retained evidence.
+The demo begins after a synthetic CRM-summary agent exceeded its authority. Restricted customer data remains in an externally shared spreadsheet, and a customer email was queued without approval. A human could inspect both systems, reason through retries and stale state, make the corrections, and document the result. Counterstep turns that manual cleanup into one evidence-bound recovery run.
 
-The Policy Decision Ledger shows every deterministic check, including rules that did not fire. Each manager-facing check is labeled deviation found, no finding, unable to assess, or not active and links back to the supplied evidence. “No finding” is limited to explicit supplied facts; it is not a compliance or trace-completeness claim.
+## What it does
 
-When the supplied trace cannot support a complete conclusion, Evidence Gap Mode refuses to guess. It shows the exact missing semantics, keeps every mapped, metadata-only, and unparsed source record visible, and opens raw-only records even when no canonical event exists.
+The Recovery Test Rack exposes four conditions before the agent starts:
 
-When a run needs attention, the interface groups related findings into incidents and proposes cited recovery steps for human approval. The primary export is Portable Evidence Packet v1: one strict JSON file containing a deterministic manager brief, the validated receipt, and a Recovery Plan v1 artifact bound to the canonical receipt by SHA-256. The recovery plan says that current state is unknown, approval is required, and no action was executed. Standalone receipt and recovery exports remain available.
+- **E1 Canonical recovery:** revoke external spreadsheet access and cancel a queued message.
+- **E2 Already safe:** inspect both resources and perform zero unnecessary writes.
+- **E3 Irreversible delivery:** repair the spreadsheet but leave the delivered message explicitly unresolved.
+- **E4 Stale-state replan:** refuse a stale write, re-inspect both resources, admit one replacement plan, and finish without overwriting newer state.
 
-The portable verifier makes that handoff testable. A manager or judge can import a receipt or evidence packet in the browser. Packet verification runs eight deterministic gates: exact-file digest, size, UTF-8, JSON, strict packet contract, all three manifest entries, the complete embedded-receipt replay, and recovery binding. A valid packet passes; one changed deterministic finding fails. No imported artifact is sent to Granite or a server route.
+Each condition declares its expected outcome, successful write count, replan count, tool-call count, and approved-plan count. After the run, server-owned deterministic code computes the observed values. `Contract matched` appears only when all five agree.
 
-## AI and technical architecture
+For every consequential write, Counterstep requires a cited approved step, the exact inspected resource version, an allowed state transition, remaining authority budget, and an application-derived idempotency key. A stale version cannot be overwritten. Closure is computed from fresh sandbox snapshots and recorded tool results rather than from the model's narration.
 
-IBM Granite has a deliberately narrow runtime role. A server-only route recomputes deterministic findings, minimizes and redacts the facts, then asks Granite to select notable finding IDs. The application accepts only valid IDs and renders deterministic cited sentences. The receipt also exposes the exact read-only model projection, allowed citation IDs, omitted fields, and fallback or Granite provenance. Missing credentials, timeouts, malformed output, or invented citations use the same usable deterministic fallback.
+## How it was built
 
-The prototype is built with strict TypeScript, Next.js, React, and Zod. Its deployed intake supports Agent Receipt Native Trace v1, one documented OTLP/JSON GenAI shape, and root or nested arrays from unfamiliar JSON exports through a reviewer-confirmed mapping manifest retained with the receipt. Packet assembly and verification are deterministic. The browser receives no model credentials, Granite cannot change the verdict, and missing evidence stays unknown.
+Counterstep is a strict TypeScript application on Next.js 16.3.3. The browser talks only to server routes running on Cloud Run. Google ADK for TypeScript binds Gemini 3.5 Flash Lite to five narrow function tools: inspect a resource, submit a plan, revoke external access, cancel a queued delivery, and verify closure.
 
-## How IBM Bob was used
+Gemini receives minimized incident facts and inspected sandbox state. It can choose and sequence a recovery, but deterministic code owns policy evaluation, plan admission, write authority, stale-version handling, the action-receipt verdict, and the closure outcome.
 
-IBM Bob was the primary development tool for the trust-critical foundation: the versioned schemas, native adapter, raw-event accounting, deterministic policy engine, first Granite boundary, redaction, claim validation, fallback path, fixtures, and focused tests. Supporting tools performed independent review, later UI and orchestration work, documentation, and verification. The repository's Bob build story and assistance records keep those roles separate.
+Firestore persists synthetic demos, resource versions, approved plans, event ledgers, idempotency records, daily admission counters, and closure receipts. The deployed service uses Vertex AI and Firestore through separate workload identities. No Gemini API key is present in the Cloud Run revision.
 
-## Why it matters
+The repository includes a credential-free fixture mode, deterministic evaluation cases, a production Firestore adapter suite against the official local emulator, an opt-in retained-write managed Firestore harness, strict cloud smoke checks, and a release/privacy audit.
 
-Agent Receipt gives people a practical review surface for work completed by AI collaborators using a file they can bring from their own workflow. The bundled examples make the result easy to reproduce; they are not the only logs the app can accept. The product does not claim to watch agents live or certify compliance. It helps the accountable manager make a bounded decision from supplied evidence, then carry cited follow-up work into an approval process without silently granting execution authority.
+## Architecture
 
-## Reproducible evidence
+The complete diagram is rendered in the [README](../README.md#architecture). In one line:
 
-- Five declared synthetic cases produce five expected deterministic verdicts.
-- All twenty-five raw corpus records are explicitly accounted for; twenty-two become canonical events.
-- The overreaching fixture activates all six seeded authority-rule families.
-- The five-case Policy Decision Ledger records 45 of 45 check outcomes: six deviations, 31 no findings, one unable to assess, and seven not active.
-- Invented generated citations and invalid Granite selections are rejected.
-- The AI boundary preview uses the same minimized, redacted bundle builder as the server route and excludes retained raw fields.
-- A material unparsed OTLP span plus unknown termination forces `unable_to_assess_fully`; the UI exposes both gaps and all three source-span classifications.
-- A vendor-shaped ten-record JSON log maps through the deployed upload path using explicit field paths and value translations. The public app mapped 10 of 10 selected records, retained the manifest, and produced the same qualified clean authority result as its native equivalent; unmapped values remain material-unparsed.
-- Recovery Plan v1 closes two incidents and six proposed actions over three events and twelve findings, with an independently checked receipt digest.
-- The browser-only Portable Receipt Verifier passes valid exports from all three receipt outcomes and catches byte, format, schema, accounting, policy, and citation failures across twelve focused trust cases.
-- Evidence Packet v1 carries three independently digested artifacts. The evaluation passes the manifest, embedded receipt replay, and recovery binding, then detects one altered deterministic finding through both manifest and policy failure.
-- `npm run verify` runs lint, strict type checking, the full tests, a production build, and release-safety scans.
+`Agent Receipt evidence → fresh inspection → Gemini/ADK candidate plan → deterministic gate → version-pinned idempotent tools → Firestore event ledger → fresh deterministic closure`
 
-The evaluation corpus is synthetic so every expected result is declared and reproducible. The custom-upload workflow is live, but one successful vendor-shaped example does not establish compatibility with every agent exporter. Record-oriented JSON with explicit action semantics can be mapped now; free-form transcripts, JSONL, binary telemetry, mixed multi-run bundles, and logs that omit required meanings need preprocessing or a dedicated adapter. None of these results establish universal policy coverage, production scale, legal compliance, trace completeness, or real-world false-positive rates. Exact deployed evidence is recorded in `docs/RELEASE_QA.md`.
+## Technologies used
 
-A passing verifier report means the supplied receipt or packet agrees with itself under the current schema and rules. The packet manifest is unsigned. It does not prove trace completeness, exporter identity, original trace bytes, authenticity, tamper-proof provenance, or a digital signature.
+- Gemini 3.5 Flash Lite on Vertex AI
+- Google Agent Development Kit for TypeScript
+- Google Cloud Run
+- Google Cloud Firestore
+- Cloud Build and Artifact Registry
+- Next.js 16.3.3, React 19, TypeScript 6, and Zod 4
+- Vitest and the official Firestore emulator
+
+## Other data sources
+
+Counterstep uses only disclosed synthetic data. The seeded incident comes from the Agent Receipt foundation and describes a fictional CRM churn-analysis run, spreadsheet, and customer message. No real customer data, email, spreadsheet, or private agent log is used in the demo.
+
+## Challenges
+
+The hardest part was keeping the model useful without letting it define reality or authority. Tool calls need enough context for Gemini to recover the incident, but a plausible plan is still unsafe if its citations, version, resource, transition, or budget are wrong. The implementation therefore separates model planning from deterministic admission and repeats critical checks inside the repository transaction.
+
+Stale state exposed another edge. Counterstep cannot retry a rejected write with a new version and call that safe. It must re-inspect every governed resource, admit one replacement plan, preserve both plans in the receipt, and block if the second attempt also becomes stale.
+
+The cloud path also failed honestly before it succeeded. The first Developer API deployment hit depleted prepaid credits and ended with zero writes. The final deployment uses Vertex AI workload identity instead, with separate build and runtime service accounts and no deployed API key.
+
+## Accomplishments
+
+- Four judge-selectable recovery conditions use the same P0 service and authority boundary.
+- E4 causes a real atomic sandbox version bump, a real `stale_revision` refusal, full re-inspection, and one bounded replan.
+- E3 closes `partially_repaired` and never describes a delivered message as recalled.
+- The exact release passes 444 automated tests, a strict production build, release/privacy scans, five deterministic evaluation cases, and eight production-repository emulator cases.
+- Six retained production-adapter cases passed against managed Firestore.
+- Three live Gemini/ADK/Vertex journeys passed with six bounded tool calls, two authorized writes, 12 accounted events, and digest-valid closures.
+- The exact-source Cloud Run revision is public, healthy, and bound to release commit `4cd8b3308c9c6216b63999bf89882725cafb22f6`.
+
+## What was learned
+
+The recovery agent became more dependable as its freedom narrowed. A small tool vocabulary, explicit authority tuple, immutable plan history, and fresh reads made failures explainable. They also made the live demo easier to judge because every claim has a visible event, state version, or receipt field behind it.
+
+The evidence layers also need separate names. A fixture proves deterministic orchestration. An emulator exercises production transaction code locally. Managed Firestore proves cloud persistence. A live model run proves Gemini and ADK behavior. A screenshot proves only what was rendered. Counterstep records those layers separately instead of letting one stand in for another.
+
+## Reuse disclosure
+
+Counterstep is a new remediation layer built during the hackathon on a disclosed Agent Receipt foundation from commit `296df0798fd49fa52658c0c813bfabef2dc75d10`. The foundation supplies exact-byte trace hashing, canonical event accounting, deterministic policy findings, the original receipt, and the synthetic CRM fixture. Counterstep's autonomous remediation, Google ADK/Gemini integration, deterministic recovery authority, transactional tools, Firestore persistence, Recovery Test Rack, closure receipt, cloud deployment, and related tests are new work. Full details are in [ORIGIN_AND_REUSE.md](../ORIGIN_AND_REUSE.md).
+
+## Testing instructions
+
+### Fastest judge path
+
+1. Open <https://counterstep-27573808078.us-central1.run.app>.
+2. Select **E4 Stale-state replan**.
+3. Press **Run Counterstep** once and wait for the terminal state.
+4. Confirm `Contract matched`, one failed `stale_revision` write, two approved plans, two successful remediation writes, 10 tool calls, 20/20 accounted events, and a digest-bearing `repaired` closure.
+
+The public service has a small daily run cap. If it has already been reached, use the local fixture path below. The video and repository evidence remain the authoritative judging proof.
+
+### Credential-free local path
+
+```bash
+git clone https://github.com/mihirduvedi/counterstep.git
+cd counterstep
+npm ci
+cp .env.example .env.local
+npm run dev
+```
+
+In `.env.local`, set `COUNTERSTEP_AGENT_MODE` to `fixture` and
+`COUNTERSTEP_REPOSITORY` to `memory`; leave credential fields blank. Open
+<http://localhost:3000>. Fixture mode exercises the same deterministic gate,
+tools, state transitions, event accounting, scenario assessor, and closure
+evaluator. The UI labels it clearly because it does not prove a live Gemini run.
+
+### Verification commands
+
+```bash
+npm run verify
+npm run eval
+npm run test:firestore
+```
+
+`npm run test:firestore` also needs Java 21 or newer. Exact managed and deployed evidence is recorded in [docs/GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md](GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md).
 
 ## Links
 
-- Live demo: <https://receipt-one-flax.vercel.app>
-- Public repository: <https://github.com/mihirduvedi/agent-receipt>
-- Public video, no more than three minutes: `[ADD VIDEO URL AFTER SIGNED-OUT PLAYBACK CHECK]`
-- Team members: `[CONFIRM REGISTERED ELIGIBLE TEAM LIST]`
+- Live demo: <https://counterstep-27573808078.us-central1.run.app>
+- Repository: <https://github.com/mihirduvedi/counterstep>
+- Demo video, four minutes maximum: `[ADD PUBLIC YOUTUBE OR VIMEO URL AFTER SIGNED-OUT PLAYBACK AND CAPTION CHECK]`
+- Team members: `[CONFIRM THE FINAL DEVPOST TEAM LIST]`
 
-## Final form check
+## Final submission check
 
-- Confirm Wildcard is selected and no teammate has a conflicting prior Wildcard submission.
-- Confirm every teammate completed the required IBM SkillsBuild Bob activity.
-- Open the repository, live demo, and video links while signed out.
-- Confirm the video duration is at or below three minutes.
-- Confirm GitHub Actions and Vercel remain successful for the exact current `main` SHA, then reproduce the generic-log, packet-verifier, standalone-receipt, and altered-receipt journeys recorded in `docs/RELEASE_QA.md`.
-- Submit before August 31, 2026 at 11:59 PM ET / 8:59 PM PT, unless the live challenge page shows a newer deadline.
+- Select exactly one category: **Taskmaster**.
+- Confirm every listed team member is eligible and has accepted the Devpost invite.
+- Make the repository public, or keep it private and grant access to both judge
+  accounts named in the [official FAQ](https://allthingsagentichackathon.devpost.com/details/faqs)
+  before submission.
+- Check the live demo, repository, architecture diagram, video, and every linked evidence page while signed out.
+- Keep the video at or below four minutes, public on YouTube or Vimeo, and in English or captioned in English.
+- Preserve one continuous, unedited live-action segment and show the `.run.app` URL or Google Cloud console proof in the video.
+- If using the optional bonuses, publish [BUILD_ARTICLE.md](BUILD_ARTICLE.md) on a public platform with its hackathon-purpose disclosure, publish [SOCIAL_POST.md](SOCIAL_POST.md) with `#AllThingsAgenticHackathon`, and add both public URLs to the Devpost form.
+- Replace both bracketed fields above. Search the tracked repository for `ADD PUBLIC`, `CONFIRM THE FINAL`, and stale challenge names.
+- Submit before August 31, 2026 at 5:00 PM Pacific Time.
+- After submission, do not change the repository, video, or submitted app through the judging period. Use a separate fork for later work.

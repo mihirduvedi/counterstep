@@ -2,10 +2,19 @@ import { describe, expect, it } from "vitest";
 
 import { CLOSURE_QUALIFIER } from "../../src/counterstep/schemas.js";
 import {
+  COUNTERSTEP_HEADLINE,
   buildRecoveryProgress,
   getRecoveryAnnouncement,
   getTerminalRunNotice,
 } from "../../src/ui/counterstepView.js";
+
+describe("Counterstep accessible product copy", () => {
+  it("keeps the visual line break from joining words in the heading name", () => {
+    expect(COUNTERSTEP_HEADLINE).toBe(
+      "From agent overstep to verified counterstep.",
+    );
+  });
+});
 
 describe("Counterstep recovery progress view", () => {
   it("keeps every phase pending before a run exists", () => {

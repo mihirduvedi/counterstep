@@ -10,6 +10,21 @@ This is an action system, not a chat interface. The model can decide which allow
 
 **Managed/deployed evidence:** [Google Cloud deployment evidence](./docs/GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md)
 
+**Judge guide:** [A 30-second path, a 90-second path, and exact evidence boundaries](./docs/JUDGE_GUIDE.md)
+
+**Submission kit:** [Devpost copy](./docs/SUBMISSION.md) · [four-minute demo script](./docs/DEMO_SCRIPT.md) · [public build article](./docs/BUILD_ARTICLE.md) · [social copy](./docs/SOCIAL_POST.md)
+
+**Documentation map:** [current submission evidence vs. retained Agent Receipt foundation](./docs/README.md)
+
+## If you have one minute
+
+1. Open the live demo and read the four predeclared contracts in the **Recovery Test Rack**.
+2. Choose **E4 Stale-state replan**. It is the shortest view of Counterstep's main technical claim: a write becomes stale after inspection, the version check refuses it, both governed resources are re-inspected, and one replacement plan is admitted.
+3. Press **Run Counterstep** once and leave the page open. The live path uses Gemini 3.5 Flash Lite through Google ADK on Vertex AI and persists the run in Firestore.
+4. At the terminal state, check **Contract matched**, the failed `stale_revision` event, two approved plans, two authorized writes, 20/20 accounted events, and the closure digest.
+
+The selected condition and its expected outcome are visible before execution. Counterstep does not grade itself from UI state; server-owned deterministic code computes the five observed measurements and the closure outcome.
+
 ## Why this exists
 
 Agent observability usually stops at “what happened?” That matters, but a production operator still has to answer the next question: what can be safely undone now?
@@ -25,9 +40,30 @@ Counterstep separates those jobs:
 
 The final artifact is deliberately qualified. It says what was checked, which events support the result, what remained unresolved, and which synthetic boundaries apply.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    Judge["Judge or AI operations manager"] --> Web["Next.js interface and API\nCloud Run"]
+    Receipt["Agent Receipt\nexact trace bytes + deterministic findings"] --> Service["Counterstep service\nrun state + bounded orchestration"]
+    Web --> Service
+    Service --> Inspect["Fresh resource inspection"]
+    Inspect --> ADK["Google ADK for TypeScript\nGemini 3.5 Flash Lite on Vertex AI"]
+    ADK --> Candidate["Cited candidate plan"]
+    Candidate --> Gate["Deterministic authority gate\nresources + transitions + versions + budgets"]
+    Gate -->|"approved only"| Tools["Transactional sandbox tools\nexact version + idempotency key"]
+    Gate -->|"rejected"| Refusal["No write / bounded replan"]
+    Tools --> Firestore["Firestore\nruns + resources + events + receipts"]
+    Refusal --> Firestore
+    Firestore --> Verify["Fresh deterministic closure evaluation"]
+    Verify --> Web
+```
+
+Gemini chooses among a small set of recovery actions. It does not decide what happened, grant authority, bypass a stale version, or declare closure. Those decisions remain deterministic and are persisted with the evidence needed to replay them.
+
 ## The hackathon path
 
-Counterstep is shaped around the Google All Things AI Agentic “Taskmaster” requirement: the primary experience is a visible, autonomous task flow with consequential tool use, not a chatbot wrapper. The live path uses the TypeScript [Agent Development Kit](https://adk.dev/get-started/typescript/) and Gemini function tools. The deployment files target Cloud Run with Firestore persistence.
+Counterstep is shaped around the Google All Things Agentic Hackathon's “Taskmaster” requirement: the primary experience is a visible, autonomous task flow with consequential tool use, not a chatbot wrapper. The live path uses the TypeScript [Agent Development Kit](https://adk.dev/get-started/typescript/) and Gemini function tools. The deployment files target Cloud Run with Firestore persistence.
 
 The selected model is `gemini-3.5-flash-lite`, which supports function calling. The agent receives five tools:
 
@@ -266,7 +302,7 @@ The project began from a clean archive of Agent Receipt commit `296df0798fd49fa5
 Confirmed through August 31, 2026:
 
 - strict TypeScript and ESLint pass;
-- 444 automated tests pass;
+- the current local submission candidate passes 445 automated tests;
 - the Next.js standalone production build passes;
 - a browser-driven deterministic run records 12 events and two writes;
 - both closure goals are satisfied and all 12 events are accounted;
@@ -280,8 +316,10 @@ Confirmed through August 31, 2026:
 - three live `gemini-3.5-flash-lite` runs through Google ADK pass the strict evidence gate with six bounded tool calls, two authorized writes, 12 accounted events, an in-authority action receipt, and a downloaded digest-valid closure each;
 - one additional live attempt failed closed before inspection with zero tool calls and zero writes; a later fresh run passed, and the evaluator now reports such deterministic terminal results before requesting a nonexistent receipt;
 - the read-only cloud preflight passes for the confirmed Counterstep project with billing, Vertex AI, Artifact Registry, Cloud Build, Firestore, IAM, Cloud Run, and the isolated service identities ready;
-- Cloud Run revision `counterstep-00003-q7m` serves the public URL with min 0 / max 1 at both service and revision layers, request-only CPU, and no deployed Gemini API key;
-- two strict deployed smoke journeys and one continuous browser journey passed with Gemini 3.5 Flash Lite through Google ADK on Vertex AI and managed Firestore;
+- exact-source Cloud Build `d97c03af-8861-45aa-aa4c-448c3394a425` succeeded from release commit `4cd8b3308c9c6216b63999bf89882725cafb22f6`;
+- Cloud Run revision `counterstep-00004-hp4` serves 100% of traffic at the public URL from image digest `sha256:4f18e727f09489fccb48a06236b0053b99b4bf6d22ac28380f8d12af7c41ad28`, with min 0 / max 1, request-only CPU, and no deployed Gemini API key;
+- GitHub Actions run [`33362745744`](https://github.com/mihirduvedi/counterstep/actions/runs/33362745744) passed on the exact release commit;
+- two strict deployed smoke journeys and one continuous browser journey passed on the immediately preceding equivalent Vertex/Firestore revision with Gemini 3.5 Flash Lite through Google ADK; the exact-source replacement revision then passed its public health contract without spending another model run;
 - the closure download fires, reset/repeat succeeds, and the browser console is clean;
 - browser-driven E3 and E4 runs display exact five-field `Contract matched` verdicts; E4 visibly refuses the stale write before re-inspecting and replanning, while E3 leaves delivered state unresolved;
 - the ready, loading, repaired, fail-closed, and offline judge states are explicit;
@@ -292,6 +330,6 @@ Not yet claimed:
 
 - a final unedited hackathon video recording;
 - a real screen-reader pass for the deployed build;
-- a source commit that exactly binds the current reviewed cloud-evidence changes to the deployed image.
+- signed-out access to the GitHub repository while it remains private.
 
 The exact managed/deployed IDs, closure digests, cost controls, screenshots, and evidence limits are in [docs/GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md](./docs/GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md). Earlier local evidence remains in [docs/LIVE_GEMINI_EVIDENCE_2026-08-29.md](./docs/LIVE_GEMINI_EVIDENCE_2026-08-29.md), [docs/LOCAL_PRODUCTION_REHEARSAL_EVIDENCE_2026-08-29.md](./docs/LOCAL_PRODUCTION_REHEARSAL_EVIDENCE_2026-08-29.md), [docs/RECOVERY_TEST_RACK_2026-08-30.md](./docs/RECOVERY_TEST_RACK_2026-08-30.md), and [docs/COUNTERSTEP_UI_QA_2026-08-30.md](./docs/COUNTERSTEP_UI_QA_2026-08-30.md).

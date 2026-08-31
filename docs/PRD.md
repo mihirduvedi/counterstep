@@ -1,5 +1,10 @@
 # Product Requirements Document: Agent Receipt
 
+> **Retained foundation document.** This PRD records the pre-existing Agent
+> Receipt project and is preserved for provenance. It is not the Counterstep
+> submission contract. Start with the repository [README](../README.md),
+> [judge guide](JUDGE_GUIDE.md), and [origin and reuse disclosure](../ORIGIN_AND_REUSE.md).
+
 **Status:** Approved build baseline
 **Version:** 1.1
 **Date:** August 25, 2026

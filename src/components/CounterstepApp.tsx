@@ -17,6 +17,7 @@ import {
   type SandboxResource,
 } from "@/counterstep/schemas";
 import {
+  COUNTERSTEP_HEADLINE,
   buildRecoveryProgress,
   getRecoveryAnnouncement,
   getTerminalRunNotice,
@@ -333,7 +334,9 @@ export function CounterstepApp() {
       <div className="cs-hero">
         <section className="cs-hero-copy" aria-labelledby="cs-title">
           <p className="cs-eyebrow">The action happened. Now close the loop.</p>
-          <h1 id="cs-title">From agent overstep<br />to verified counterstep.</h1>
+          <h1 id="cs-title" aria-label={COUNTERSTEP_HEADLINE}>
+            From agent overstep<br />to verified counterstep.
+          </h1>
           <p className="cs-dek">
             Counterstep reads the original receipt, inspects what is true now,
             authorizes only cited reversible repairs, and checks the result from

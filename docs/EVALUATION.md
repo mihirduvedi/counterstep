@@ -1,5 +1,10 @@
 # Agent Receipt Evaluation
 
+> **Retained foundation document.** This report describes the inherited Agent
+> Receipt evaluation corpus. Counterstep's current five-case recovery evaluation
+> is summarized in [RELEASE_QA.md](RELEASE_QA.md) and runs through
+> `npm run eval`.
+
 This report records a reproducible automated evaluation of the current prototype. The corpus uses declared examples so every expected outcome can be regenerated locally. That choice makes the evidence repeatable; it does not limit the product to those files. The deployed app also accepts a reviewer-uploaded or pasted record-oriented JSON log through the explicit mapping workflow described in `docs/GENERIC_JSON_ADAPTER.md`.
 
 ## Result at a glance

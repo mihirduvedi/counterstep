@@ -1,5 +1,10 @@
 # Agent Receipt
 
+> **Retained foundation document.** This guide records the pre-existing Agent
+> Receipt product and is preserved for provenance. It is not the Counterstep
+> submission guide. Start with the repository [README](../README.md),
+> [judge guide](JUDGE_GUIDE.md), and [documentation map](README.md).
+
 ## The complete project guide
 
 **From first principles to architecture, code, trust boundaries, testing, and deployment**
