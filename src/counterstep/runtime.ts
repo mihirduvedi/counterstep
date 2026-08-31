@@ -15,6 +15,7 @@ export const COUNTERSTEP_APP_VERSION = "0.1.0";
 export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite";
 
 export type AgentMode = "gemini" | "fixture" | "no_execution";
+export type GeminiBackend = "gemini-api" | "vertex-ai" | "unconfigured";
 
 const DailyRunLimitEnvironmentSchema = z.coerce
   .number()
@@ -37,10 +38,25 @@ export function getAgentMode(): AgentMode {
   if (configured === "fixture") return "fixture";
   if (configured === "no_execution") return "no_execution";
   if (configured === "gemini") {
-    return process.env.GEMINI_API_KEY ? "gemini" : "no_execution";
+    return getGeminiBackend() === "unconfigured" ? "no_execution" : "gemini";
   }
   if (process.env.NODE_ENV !== "production") return "fixture";
-  return process.env.GEMINI_API_KEY ? "gemini" : "no_execution";
+  return getGeminiBackend() === "unconfigured" ? "no_execution" : "gemini";
+}
+
+export function getGeminiBackend(): GeminiBackend {
+  const enterpriseMode = ["1", "true"].includes(
+    (process.env.GOOGLE_GENAI_USE_ENTERPRISE ?? "").toLowerCase(),
+  );
+  if (
+    enterpriseMode &&
+    process.env.GOOGLE_CLOUD_PROJECT &&
+    process.env.GOOGLE_CLOUD_LOCATION
+  ) {
+    return "vertex-ai";
+  }
+  if (process.env.GEMINI_API_KEY) return "gemini-api";
+  return "unconfigured";
 }
 
 export function getGeminiModel(): string {
@@ -49,7 +65,7 @@ export function getGeminiModel(): string {
 
 export function getDailyRunLimit(): number {
   return DailyRunLimitEnvironmentSchema.parse(
-    process.env.COUNTERSTEP_MAX_DAILY_RUNS ?? "200",
+    process.env.COUNTERSTEP_MAX_DAILY_RUNS ?? "10",
   );
 }
 

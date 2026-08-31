@@ -41,6 +41,7 @@ function validManifest() {
     repository: "firestore",
     repositoryReachable: true,
     geminiConfigured: true,
+    modelBackend: "gemini-api",
     agentMode: "gemini",
     modelId: "gemini-3.5-flash-lite",
     agentFramework: "google-adk-typescript",

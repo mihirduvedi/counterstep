@@ -2,6 +2,7 @@ import { jsonResponse } from "@/counterstep/http";
 import {
   COUNTERSTEP_APP_VERSION,
   getAgentMode,
+  getGeminiBackend,
   getGeminiModel,
   getRuntime,
   isCloudRun,
@@ -13,13 +14,15 @@ export const dynamic = "force-dynamic";
 
 export async function GET(): Promise<Response> {
   const { repository } = getRuntime();
+  const modelBackend = getGeminiBackend();
   const payload = HealthResponseSchema.parse({
     ok: true,
     appVersion: COUNTERSTEP_APP_VERSION,
     deployment: isCloudRun() ? "cloud-run" : "local",
     repository: repository.kind,
     repositoryReachable: await repository.ping(),
-    geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
+    geminiConfigured: modelBackend !== "unconfigured",
+    modelBackend,
     agentMode: getAgentMode(),
     modelId: getGeminiModel(),
     agentFramework: "google-adk-typescript",

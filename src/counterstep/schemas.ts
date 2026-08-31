@@ -819,6 +819,7 @@ export const HealthResponseSchema = z
     repository: z.enum(["memory", "firestore"]),
     repositoryReachable: z.boolean(),
     geminiConfigured: z.boolean(),
+    modelBackend: z.enum(["gemini-api", "vertex-ai", "unconfigured"]),
     agentMode: z.enum(["gemini", "fixture", "no_execution"]),
     modelId: z.string().min(1),
     agentFramework: z.literal("google-adk-typescript"),

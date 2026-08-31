@@ -1,0 +1,24 @@
+substitutions:
+  _RUN_LABEL: managed-required
+
+steps:
+  - name: node:24-bookworm-slim
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        npm ci
+        npx vitest run --config vitest.firestore.managed.config.ts
+    env:
+      - COUNTERSTEP_MANAGED_FIRESTORE_PROJECT=$PROJECT_ID
+      - COUNTERSTEP_MANAGED_FIRESTORE_CONFIRM_PROJECT=$PROJECT_ID
+      - COUNTERSTEP_MANAGED_FIRESTORE_DATABASE_ID=(default)
+      - COUNTERSTEP_MANAGED_FIRESTORE_RUN_LABEL=${_RUN_LABEL}
+      - COUNTERSTEP_MANAGED_FIRESTORE_WRITE_ACK=I_ACKNOWLEDGE_COUNTERSTEP_MANAGED_FIRESTORE_WRITES
+
+serviceAccount: projects/$PROJECT_ID/serviceAccounts/counterstep-build@$PROJECT_ID.iam.gserviceaccount.com
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 900s

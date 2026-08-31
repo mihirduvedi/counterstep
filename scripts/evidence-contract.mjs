@@ -56,11 +56,20 @@ export function assertLiveHealth(health, options = {}) {
     "Target is not running with a configured Gemini agent.",
   );
   assert(
+    health.modelBackend === "gemini-api" ||
+      health.modelBackend === "vertex-ai",
+    "Target does not identify a live Gemini backend.",
+  );
+  assert(
     health.agentFramework === "google-adk-typescript",
     "Target is not using Google ADK for TypeScript.",
   );
   assertEligibleGeminiModel(health.modelId);
   if (options.requireCloud) {
+    assert(
+      health.modelBackend === "vertex-ai",
+      "Cloud evidence must use Vertex AI workload identity.",
+    );
     assert(
       health.deployment === "cloud-run",
       "Target does not identify as Cloud Run.",

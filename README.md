@@ -6,6 +6,10 @@ The demo starts with an [Agent Receipt](./ORIGIN_AND_REUSE.md) for a synthetic c
 
 This is an action system, not a chat interface. The model can decide which allowed repair is still needed. It cannot grant itself authority or turn its own narration into proof.
 
+**Live demo:** https://counterstep-27573808078.us-central1.run.app
+
+**Managed/deployed evidence:** [Google Cloud deployment evidence](./docs/GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md)
+
 ## Why this exists
 
 Agent observability usually stops at “what happened?” That matters, but a production operator still has to answer the next question: what can be safely undone now?
@@ -69,9 +73,9 @@ Execution admission is also deterministic. `POST /api/remediation-runs/:runId/ex
 
 | Mode | When it is used | What it proves |
 |---|---|---|
-| `gemini` | `COUNTERSTEP_AGENT_MODE=gemini` and `GEMINI_API_KEY` is present | Live Gemini planning and Google ADK orchestration through the production tool boundary |
+| `gemini` | `COUNTERSTEP_AGENT_MODE=gemini` with either a server-only `GEMINI_API_KEY`, or complete Vertex AI project/location configuration | Live Gemini planning and Google ADK orchestration through the production tool boundary; health reports the selected backend |
 | `fixture` | Explicit mode, or the default in local development with no mode set | The same deterministic tool, gate, persistence, and closure contracts with a fixed local planner; it does not count as a live model run |
-| `no_execution` | Production has no Gemini key, or explicitly selected | Fail-closed behavior with zero writes and an exact terminal reason |
+| `no_execution` | Production has no complete Gemini backend, or explicitly selected | Fail-closed behavior with zero writes and an exact terminal reason |
 
 The interface labels fixture runs as `deterministic contract fixture · ADK live path not invoked` so screenshots cannot be mistaken for live Gemini evidence.
 
@@ -154,6 +158,8 @@ npm run test:firestore:managed
 
 The managed suite refuses missing or mismatched project confirmation, `demo-` projects, emulator fallback, non-default databases, invalid or reused-looking labels, and a missing exact write acknowledgement. It checks that the label has not already created its canonical sentinel before proceeding, never cleans up or overwrites prior evidence, and emits one structured `COUNTERSTEP_MANAGED_FIRESTORE_EVIDENCE` record. Its six cases cover canonical fresh-reader closure, concurrent idempotency, transactional admission on a reserved synthetic date, both stale-state outcomes, and delivered-message partial repair. The harness being present or passing its local guard tests is not managed-Firestore evidence; only a completed explicitly authorized run is.
 
+`cloudbuild.managed-firestore.yaml` runs that same retained-write suite inside Google Cloud with the isolated `counterstep-build` identity, so no downloaded service-account key is required. Supply a unique `_RUN_LABEL`; the config does not read the Gemini secret.
+
 ## API
 
 | Method | Route | Purpose |
@@ -218,17 +224,16 @@ The cloud smoke check requires Cloud Run identity, reachable Firestore, configur
 
 ## Cloud Run
 
-`Dockerfile` builds the Next.js standalone server and copies only the generated standalone and static outputs; this repository currently has no `public/` asset directory. `cloudbuild.yaml` builds and pushes the image, deploys it to Cloud Run with the dedicated `counterstep-runtime` service identity, selects Firestore and Gemini mode, and reads a pinned numeric version of `GEMINI_API_KEY` from Secret Manager. The locked P0 envelope is request-based service behavior with zero minimum instances, one maximum instance, concurrency 1, 1 vCPU, 512 MiB, a 60-second request timeout, a 30-second agent timeout, and a 200-run UTC daily cap.
+`Dockerfile` builds the Next.js standalone server and copies only the generated standalone and static outputs; this repository currently has no `public/` asset directory. `cloudbuild.yaml` builds and pushes the image with the dedicated `counterstep-build` identity, then deploys it to Cloud Run with the separate `counterstep-runtime` service identity. The runtime uses its short-lived workload identity for both Firestore and Gemini 3.5 Flash Lite on Vertex AI; no API key is injected into the deployed revision. The locked P0 envelope is request-based CPU with startup boost disabled, both service- and revision-level scaling fixed at zero minimum and one maximum instance, concurrency 1, no session affinity, 1 vCPU, 512 MiB, a 60-second request timeout, a 30-second agent timeout, and a 10-run UTC daily cap.
 
-Before the first deployment, explicitly choose a Google Cloud project, enable billing and the required APIs, create the `counterstep` Artifact Registry repository, default Firestore database, `counterstep-runtime` service account and least-privilege permissions, and the Secret Manager entry named `counterstep-gemini-api-key` with an enabled numeric version. Check that boundary without mutation:
+Before the first deployment, explicitly choose a Google Cloud project, enable billing and the required APIs, create the `counterstep` Artifact Registry repository, default Firestore database, and the isolated `counterstep-build` and `counterstep-runtime` service accounts with least-privilege permissions. Check that boundary without mutation:
 
 ```bash
 COUNTERSTEP_GCP_PROJECT=your-project-id \
-COUNTERSTEP_GEMINI_SECRET_VERSION=1 \
 npm run preflight:cloud
 ```
 
-Only after the preflight passes and deployment is freshly authorized, submit `cloudbuild.yaml` from that exact project. Override `_GEMINI_SECRET_VERSION` with the same numeric version if it is not `1`; do not deploy the floating `latest` alias.
+Only after the preflight passes and deployment is freshly authorized, submit `cloudbuild.yaml` from that exact project. The deployed health response must identify `modelBackend` as `vertex-ai`; an API-key-backed local rehearsal is never relabeled as deployed Vertex AI evidence.
 
 No deployment is claimed in this repository until `npm run smoke:cloud` passes against the public URL.
 
@@ -258,10 +263,10 @@ counterstep-planning/        original PRD and continuation context
 
 The project began from a clean archive of Agent Receipt commit `296df0798fd49fa52658c0c813bfabef2dc75d10`. The original checkout was not modified. [ORIGIN_AND_REUSE.md](./ORIGIN_AND_REUSE.md) lists what was retained and what Counterstep adds.
 
-Confirmed locally through August 30, 2026:
+Confirmed through August 31, 2026:
 
 - strict TypeScript and ESLint pass;
-- 439 automated tests pass;
+- 444 automated tests pass;
 - the Next.js standalone production build passes;
 - a browser-driven deterministic run records 12 events and two writes;
 - both closure goals are satisfied and all 12 events are accounted;
@@ -271,10 +276,12 @@ Confirmed locally through August 30, 2026:
 - the exact production container passes the local rehearsal against the official Firestore emulator: two live `gemini-3.5-flash-lite` / Google ADK journeys each record six bounded tool calls, two authorized writes, and 12 accounted events, and a fresh second container reproduces the first persisted run and closure exactly after application restart;
 - after two later model invocations stopped before closure (one after one write and one after two), the bounded-continuation repair passed a fresh two-journey production rehearsal without weakening the deterministic gate or evidence contract;
 - two fresh pre-release rehearsals built and started the current production image but Gemini stopped before inspection; both attempts failed closed with zero writes and no passing manifest, after which the seven-case credential-free production Firestore repository suite passed against the official emulator;
-- the opt-in managed Firestore harness compiles and its eight local configuration-guard tests pass; its intentional no-configuration exercise stops before client construction, so no managed write is claimed;
+- the opt-in managed Firestore harness passed six retained cases against the real default Firestore database in Cloud Build;
 - three live `gemini-3.5-flash-lite` runs through Google ADK pass the strict evidence gate with six bounded tool calls, two authorized writes, 12 accounted events, an in-authority action receipt, and a downloaded digest-valid closure each;
 - one additional live attempt failed closed before inspection with zero tool calls and zero writes; a later fresh run passed, and the evaluator now reports such deterministic terminal results before requesting a nonexistent receipt;
-- the read-only cloud preflight correctly fails closed for the currently selected but unconfirmed project because billing and the required deployment resources are not ready; it performed no mutation;
+- the read-only cloud preflight passes for the confirmed Counterstep project with billing, Vertex AI, Artifact Registry, Cloud Build, Firestore, IAM, Cloud Run, and the isolated service identities ready;
+- Cloud Run revision `counterstep-00003-q7m` serves the public URL with min 0 / max 1 at both service and revision layers, request-only CPU, and no deployed Gemini API key;
+- two strict deployed smoke journeys and one continuous browser journey passed with Gemini 3.5 Flash Lite through Google ADK on Vertex AI and managed Firestore;
 - the closure download fires, reset/repeat succeeds, and the browser console is clean;
 - browser-driven E3 and E4 runs display exact five-field `Contract matched` verdicts; E4 visibly refuses the stale write before re-inspecting and replanning, while E3 leaves delivered state unresolved;
 - the ready, loading, repaired, fail-closed, and offline judge states are explicit;
@@ -283,8 +290,8 @@ Confirmed locally through August 30, 2026:
 
 Not yet claimed:
 
-- a managed Firestore transaction run;
-- a deployed Cloud Run URL;
-- Cloud Run smoke results.
+- a final unedited hackathon video recording;
+- a real screen-reader pass for the deployed build;
+- a source commit that exactly binds the current reviewed cloud-evidence changes to the deployed image.
 
-The exact local live run IDs, closure digests, retained receipt, and evidence limitations are recorded in [docs/LIVE_GEMINI_EVIDENCE_2026-08-29.md](./docs/LIVE_GEMINI_EVIDENCE_2026-08-29.md). The container-restart rehearsal is recorded separately in [docs/LOCAL_PRODUCTION_REHEARSAL_EVIDENCE_2026-08-29.md](./docs/LOCAL_PRODUCTION_REHEARSAL_EVIDENCE_2026-08-29.md). The Recovery Test Rack decision, contracts, demo sequence, and evidence boundary are in [docs/RECOVERY_TEST_RACK_2026-08-30.md](./docs/RECOVERY_TEST_RACK_2026-08-30.md). The earlier rendered-state and accessibility evidence is in [docs/COUNTERSTEP_UI_QA_2026-08-30.md](./docs/COUNTERSTEP_UI_QA_2026-08-30.md). The remaining claims require managed credentials or external deployment state and should be recorded only after they are executed.
+The exact managed/deployed IDs, closure digests, cost controls, screenshots, and evidence limits are in [docs/GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md](./docs/GOOGLE_CLOUD_DEPLOYMENT_EVIDENCE_2026-08-31.md). Earlier local evidence remains in [docs/LIVE_GEMINI_EVIDENCE_2026-08-29.md](./docs/LIVE_GEMINI_EVIDENCE_2026-08-29.md), [docs/LOCAL_PRODUCTION_REHEARSAL_EVIDENCE_2026-08-29.md](./docs/LOCAL_PRODUCTION_REHEARSAL_EVIDENCE_2026-08-29.md), [docs/RECOVERY_TEST_RACK_2026-08-30.md](./docs/RECOVERY_TEST_RACK_2026-08-30.md), and [docs/COUNTERSTEP_UI_QA_2026-08-30.md](./docs/COUNTERSTEP_UI_QA_2026-08-30.md).

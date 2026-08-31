@@ -21,17 +21,14 @@ const RegionSchema = z
   .min(3)
   .max(40)
   .regex(/^[a-z]+-[a-z]+\d+$/);
-const SecretVersionSchema = z.string().regex(/^[1-9]\d*$/);
-
 const CloudPreflightConfigSchema = z
   .object({
     project: ProjectIdSchema,
     region: RegionSchema,
     service: ResourceNameSchema,
     repository: ResourceNameSchema,
+    buildServiceAccount: ResourceNameSchema,
     serviceAccount: ResourceNameSchema,
-    secret: ResourceNameSchema,
-    secretVersion: SecretVersionSchema,
   })
   .strict();
 
@@ -42,13 +39,10 @@ export function parseCloudPreflightConfig(environment = process.env) {
     service: environment.COUNTERSTEP_GCP_SERVICE ?? "counterstep",
     repository:
       environment.COUNTERSTEP_GCP_REPOSITORY ?? "counterstep",
+    buildServiceAccount:
+      environment.COUNTERSTEP_GCP_BUILD_SERVICE_ACCOUNT ?? "counterstep-build",
     serviceAccount:
       environment.COUNTERSTEP_GCP_SERVICE_ACCOUNT ?? "counterstep-runtime",
-    secret:
-      environment.COUNTERSTEP_GEMINI_SECRET ??
-      "counterstep-gemini-api-key",
-    secretVersion:
-      environment.COUNTERSTEP_GEMINI_SECRET_VERSION ?? "1",
   });
 }
 
@@ -111,15 +105,17 @@ function check(name, args, validate = () => true, required = true) {
 }
 
 export function runCloudPreflight(config) {
+  const buildServiceAccountEmail =
+    `${config.buildServiceAccount}@${config.project}.iam.gserviceaccount.com`;
   const serviceAccountEmail =
     `${config.serviceAccount}@${config.project}.iam.gserviceaccount.com`;
   const requiredApis = [
+    "aiplatform.googleapis.com",
     "artifactregistry.googleapis.com",
     "cloudbuild.googleapis.com",
     "firestore.googleapis.com",
     "iam.googleapis.com",
     "run.googleapis.com",
-    "secretmanager.googleapis.com",
   ];
   const checks = [
     check(
@@ -189,6 +185,18 @@ export function runCloudPreflight(config) {
       (output) => output.includes(`/repositories/${config.repository}`),
     ),
     check(
+      "build_service_account",
+      [
+        "iam",
+        "service-accounts",
+        "describe",
+        buildServiceAccountEmail,
+        `--project=${config.project}`,
+        "--format=value(email)",
+      ],
+      (output) => output === buildServiceAccountEmail,
+    ),
+    check(
       "runtime_service_account",
       [
         "iam",
@@ -199,19 +207,6 @@ export function runCloudPreflight(config) {
         "--format=value(email)",
       ],
       (output) => output === serviceAccountEmail,
-    ),
-    check(
-      "gemini_secret_version",
-      [
-        "secrets",
-        "versions",
-        "describe",
-        config.secretVersion,
-        `--secret=${config.secret}`,
-        `--project=${config.project}`,
-        "--format=value(state)",
-      ],
-      (output) => output === "ENABLED",
     ),
     check(
       "cloud_run_service",
